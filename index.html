@@ -41,6 +41,9 @@
                             .sw-header-sub { margin-left: 0 !important; }
                             .sw-details-toggle-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.5rem !important; }
                             .sw-details-toggle-label { width: 100% !important; justify-content: flex-start !important; }
+                                        .expense-date-paid-row { flex-direction: column !important; gap: 0.25rem !important; align-items: flex-start !important; }
+                                        .expense-date-paid-row > .flex-1 { width: 100% !important; }
+                                        .expense-date-paid-row .relative { width: 100% !important; }
                         }
             :root{--radius:12px;--glass-bg:rgba(255,255,255,0.65);}
             html,body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
@@ -53,6 +56,15 @@
             .custom-checkbox:checked::after{ content:''; position:absolute; left:5px; top:2px; width:5px; height:9px; border:2px solid white; border-top:0; border-left:0; transform:rotate(45deg); }
             /* Small utility for subtle glass border */
             .glass-panel{ background: var(--glass-bg); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,0.5); }
+            /* Make buttons less pill-shaped while preserving existing classes */
+                button[class*="rounded-full"] { border-radius: 10px !important; }
+                /* Exception: keep the small transactions toggle fully rounded */
+                button#toggleTransactions { border-radius: 9999px !important; }
+            /* Slightly smaller badge radius for payer and split chips */
+            .badge-sm { border-radius: 6px; padding: 0.25rem 0.5rem; }
+            /* Transaction description readability */
+            .tx-line { display:block; word-break:break-word; }
+            .tx-dot { width:8px; height:8px; border-radius:9999px; display:inline-block; margin-right:0.5rem; }
         </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-sky-100 text-sm antialiased">
@@ -73,7 +85,8 @@
     <div class="flex gap-2 mb-6 border-b border-slate-100 pb-2" role="tablist" aria-label="Primary">
             <button id="btn-names" class="tab-btn px-4 py-2 rounded-t-lg text-slate-600 font-medium text-sm hover:text-primary transition" role="tab" aria-controls="tab-names" aria-selected="false" onclick="showTab('names')">Names</button>
             <button id="btn-split" class="tab-btn px-4 py-2 rounded-t-lg text-slate-600 font-medium text-sm hover:text-primary transition" role="tab" aria-controls="tab-split" aria-selected="false" onclick="showTab('split')">Split</button>
-            <button id="btn-detailed" class="tab-btn px-4 py-2 rounded-t-lg text-slate-600 font-medium text-sm hover:text-primary transition" role="tab" aria-controls="tab-detailed" aria-selected="false" onclick="showTab('detailed')">Detailed</button>
+            <button id="btn-summary" class="tab-btn px-4 py-2 rounded-t-lg text-slate-600 font-medium text-sm hover:text-primary transition" role="tab" aria-controls="tab-summary" aria-selected="false" onclick="showTab('summary')">Summary</button>
+            <button id="btn-detailed" class="tab-btn px-4 py-2 rounded-t-lg text-slate-600 font-medium text-sm hover:text-primary transition" role="tab" aria-controls="tab-detailed" aria-selected="false" onclick="showTab('detailed')">Detailed Info</button>
         </div>
     <div id="tab-names" class="tab-content hidden" role="tabpanel" aria-labelledby="btn-names" aria-hidden="true">
             <div class="mb-6">
@@ -82,7 +95,7 @@
                     <input type="text" id="roommate" placeholder="Enter roommate name" onkeydown="if(event.key==='Enter'){addRoommate();}" class="flex-1 px-3 py-2 border border-slate-200 rounded-xl bg-white/60 focus:outline-none focus:ring-2 focus:ring-primary transition" aria-label="Roommate name">
                 </div>
                 <div class="flex items-center gap-3">
-                    <button id="clearNamesBtn" class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-medium bg-red-50 text-red-600 border border-red-100 hover:bg-red-600 hover:text-white transition" onclick="clearAllNames()">Clear All Names</button>
+                    <button id="clearNamesBtn" class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-medium bg-red-50 text-red-600 border border-red-100 hover:bg-red-600 hover:text-white transition" onclick="clearAllNames()">Delete All Names</button>
                     <button onclick="addRoommate()" id="addRoommateBtn" class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm font-medium shadow-sm transition transform hover:-translate-y-0.5 bg-sky-600 hover:bg-sky-700 text-white">Add Roommate</button>
                 </div>
             </div>
@@ -92,21 +105,33 @@
             <div class="flex justify-between items-center mb-4">
                 <div class="text-sm text-slate-500">Manage your room expenses</div>
                 <div>
-                    <button id="clearSplitsBtn" class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm transition transform hover:-translate-y-0.5" onclick="clearAllSplits()">Clear All Splits</button>
+                    <button id="clearSplitsBtn" class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm transition transform hover:-translate-y-0.5" onclick="clearAllSplits()">Delete All Splits</button>
                 </div>
             </div>
             <div class="md:flex md:gap-12">
-                <div class="md:w-1/2">
+                <div class="md:w-full">
                     <label class="block text-slate-700 font-medium mb-2">Add Expense</label>
-                    <input type="text" id="desc" placeholder="Description" class="w-full mb-3 px-4 py-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary transition" aria-label="Description">
-                    <input type="text" id="amount" placeholder="Amount (e.g. 3+100+40 Or 3,100,40)" min="0" step="0.01" onkeydown="if(event.key==='Enter'){addExpense();}" class="w-full mb-3 px-4 py-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary transition" aria-label="Amount">
-                    <label for="paidBy" class="block text-sm font-medium text-slate-700 mb-1">Who paid?</label>
-                    <div class="relative mb-3">
-                        <select id="paidBy" class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white appearance-none pr-10"></select>
-                        <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">▾</div>
-                    </div>
-                    <div id="splitAmongSection" class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Split among:</label>
+                    <input type="text" id="desc" placeholder="Ex: Dinner, Lunch, Rice, Groceries...." class="w-full mb-3 px-4 py-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary transition" aria-label="Description">
+                    <input type="text" id="amount" placeholder="Amount (Ex: 30 Or 3+100+40 Or 3,100,40 Or 3,100+40)" min="0" step="0.01" onkeydown="if(event.key==='Enter'){addExpense();}" class="w-full mb-3 px-4 py-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary transition" aria-label="Amount">
+                    <div class="flex expense-date-paid-row gap-3 mb-3 items-end">
+                        <div class="flex-1 min-w-0">
+                            <label for="expenseDate" class="block text-sm font-medium text-slate-700 mb-1">Date (optional):</label>
+                            <input type="date" id="expenseDate" class="w-full px-4 py-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary transition cursor-pointer" aria-label="Expense date">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <label for="paidBy" class="block text-sm font-medium text-slate-700 mb-1">Who paid?</label>
+                            <div class="relative">
+                                <select id="paidBy" class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white appearance-none pr-10"></select>
+                                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">▾</div>
+                            </div>
+                        </div>
+                        </div>
+                        <div id="splitAmongSection" class="mb-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <label class="block text-sm font-medium text-slate-700">Split among:</label>
+                            <button id="selectAllBtn" type="button" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition">Select All</button>
+                            <button id="unselectAllBtn" type="button" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Unselect All</button>
+                        </div>
                         <div id="splitAmongCheckboxes" class="flex flex-wrap gap-2"></div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -114,19 +139,26 @@
                             <svg id="splitSpinner" class="w-4 h-4 animate-spin text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
                             <span id="splitBtnText">Split Expense</span>
                         </button>
+                        <button id="cancelEditBtn" class="hidden inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-gray-300 hover:bg-gray-400 text-gray-700 shadow-sm transition" type="button">Cancel</button>
                     </div>
                     <ul id="expenseList" class="mt-6 space-y-3"></ul>
                 </div>
-                <div class="md:w-1/2 md:sticky md:top-6 bg-white/60 glass-panel p-4 rounded-xl shadow-sm mt-6 md:mt-0">
-                    <h2 class="text-lg font-semibold text-slate-800 mb-3">Balances</h2>
-                    <ul id="balanceList" class="space-y-2" aria-live="polite"></ul>
+                <!-- Balances panel removed — use Summary tab instead -->
+            </div>
+        </div>
+        <div id="tab-summary" class="tab-content hidden" role="tabpanel" aria-labelledby="btn-summary" aria-hidden="true">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Summary</h2>
+                <div class="bg-white/60 glass-panel p-4 rounded-xl shadow-sm">
+                    <ul id="summaryList" class="space-y-2" aria-live="polite"></ul>
                 </div>
             </div>
         </div>
+
         <div id="tab-detailed" class="tab-content hidden" role="tabpanel" aria-labelledby="btn-detailed" aria-hidden="true">
             <div>
                 <div class="flex items-center justify-between sw-details-toggle-row">
-                    <h2 class="text-lg font-semibold text-slate-800 m-0">Detailed Balances</h2>
+                    <h2 class="text-lg font-semibold text-slate-800 m-0">Detailed Summary</h2>
                     <label class="flex items-center gap-3 text-slate-700 font-medium cursor-pointer select-none sw-details-toggle-label">
                         <span class="text-sm">Show each transaction</span>
                         <button id="toggleTransactions" role="switch" aria-checked="false" type="button" onclick="toggleTransactions()" class="relative inline-flex h-6 w-12 items-center rounded-full bg-slate-200 focus:outline-none" aria-label="Show each transaction">
@@ -241,6 +273,21 @@
             return luminance > 160 ? '#222' : '#fff';
         }
 
+        function hexToRgb(hex) {
+            const c = hex.replace('#','');
+            const n = parseInt(c,16);
+            return { r: (n>>16)&255, g: (n>>8)&255, b: n&255 };
+        }
+
+        function darkenHex(hex, pct) {
+            const {r,g,b} = hexToRgb(hex);
+            const f = (v) => Math.max(0, Math.min(255, Math.floor(v * (1 - pct))));
+            const rr = f(r).toString(16).padStart(2,'0');
+            const gg = f(g).toString(16).padStart(2,'0');
+            const bb = f(b).toString(16).padStart(2,'0');
+            return `#${rr}${gg}${bb}`;
+        }
+
         function updateRoommateList() {
             const ul = document.getElementById('roommateList');
             // Show roommates as clean, modern badges with remove (X) icon and unique color
@@ -274,6 +321,21 @@
                 </label>
                 `;
             }).join('');
+            // Add event listeners for select/unselect all
+            setTimeout(() => {
+                const selectAllBtn = document.getElementById('selectAllBtn');
+                const unselectAllBtn = document.getElementById('unselectAllBtn');
+                if (selectAllBtn) {
+                    selectAllBtn.onclick = function() {
+                        document.querySelectorAll('.split-among').forEach(cb => cb.checked = true);
+                    };
+                }
+                if (unselectAllBtn) {
+                    unselectAllBtn.onclick = function() {
+                        document.querySelectorAll('.split-among').forEach(cb => cb.checked = false);
+                    };
+                }
+            }, 50);
         }
 
         function addRoommate() {
@@ -317,14 +379,16 @@
             }
             const paidBy = document.getElementById('paidBy').value;
             const splitAmong = Array.from(document.querySelectorAll('.split-among:checked')).map(cb => cb.value);
+            const dateInput = document.getElementById('expenseDate')?.value || '';
             if (desc && amount > 0 && paidBy && splitAmong.length > 0) {
                 // show a short loading micro-interaction and skeleton
                 setLoading(true);
                 setTimeout(() => {
-                    expenses.push({ desc, amount, paidBy, splitAmong });
+                    expenses.push({ desc, amount, paidBy, splitAmong, date: dateInput || null });
                     updateExpenseList();
                     document.getElementById('desc').value = '';
                     document.getElementById('amount').value = '';
+                    document.getElementById('expenseDate').value = '';
                     updateSplitAmongCheckboxes();
                     updateBalances();
                     updateDetailedBalances();
@@ -349,6 +413,7 @@ function updateExpenseList() {
                 return;
             }
             ul.innerHTML = expenses.map((e, i) => {
+                const dateStr = e.date ? new Date(e.date).toLocaleDateString() : '';
                 // Get payer badge color
                 let payerIdx = roommates.findIndex(r => r === e.paidBy);
                 if (payerIdx === -1) payerIdx = 0;
@@ -360,10 +425,12 @@ function updateExpenseList() {
                     if (idx === -1) idx = 0;
                     const bg = getBadgeColor(idx, name);
                     const color = getTextColor(bg);
-                    return `<span style="background:${bg};color:${color};" class="inline-block px-2 py-0.5 rounded-full text-xs font-medium mr-2">${name}</span>`;
+                    return `<span style="background:${bg};color:${color};" class="inline-block px-2 py-0.5 badge-sm text-xs font-medium mr-2">${name}</span>`;
                 }).join('');
+                // use a slightly darker left border (2px) for clearer payer indicator
+                const leftBorder = darkenHex(payerColor, 0.18);
                 return `
-                <li class="bg-white rounded-lg shadow-sm mt-4 p-4 border-l-4 transition hover:shadow-md" style="border-left-color: ${payerColor};">
+                <li class="bg-white rounded-lg shadow-sm mt-4 p-4 transition hover:shadow-md" style="border-left:2px solid ${leftBorder};">
                     <div class="flex items-start justify-between">
                         <span class="text-sky-700 text-lg font-semibold">${e.desc}</span>
                         <span class="inline-flex items-center gap-2">
@@ -372,10 +439,12 @@ function updateExpenseList() {
                         </span>
                     </div>
                     <div class="mt-2 text-sky-700 font-medium">Amount: ₹${e.amount.toFixed(2)}</div>
+                    ${dateStr ? `<div class="mt-1 text-sm text-gray-500">Date: ${dateStr}</div>` : ''}
                     <div class="mt-2 text-sm flex items-center gap-3">Paid by:
-                        <span style="background:${payerColor};color:${payerTextColor};" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-sm">${e.paidBy}</span>
+                        <span style="background:${payerColor};color:${payerTextColor};" class="inline-flex items-center px-2 py-0.5 badge-sm text-sm font-medium shadow-sm">${e.paidBy}</span>
                     </div>
                     <div class="mt-3 text-sm text-gray-600">Split among: ${splitBadges}</div>
+                    
                 </li>
                 `;
             }).join('');
@@ -444,23 +513,47 @@ function updateExpenseList() {
         
         function editExpense(idx) {
             const e = expenses[idx];
+            document.getElementById('expenseDate').value = e.date || '';
             document.getElementById('desc').value = e.desc;
             document.getElementById('amount').value = e.amount;
             document.getElementById('paidBy').value = e.paidBy;
             document.querySelectorAll('.split-among').forEach(cb => {
                 cb.checked = e.splitAmong.includes(cb.value);
             });
-            expenses.splice(idx, 1);
-            updateExpenseList();
-            updateBalances();
-            updateDetailedBalances();
+            // Temporarily store the expense being edited, but do not remove it yet
+            const originalExpense = expenses[idx];
             // Change button to 'Update' and set update mode
             const splitBtn = document.getElementById('splitBtn');
-            splitBtn.textContent = 'Update Expense';
+            const splitBtnText = document.getElementById('splitBtnText');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            splitBtnText.textContent = 'Update Expense';
             splitBtn.onclick = function() {
+                // Remove the original expense before adding the updated one
+                expenses.splice(idx, 1);
                 addExpense();
-                splitBtn.textContent = 'Split Expense';
+                splitBtnText.textContent = 'Split Expense';
                 splitBtn.onclick = addExpense;
+                cancelBtn.classList.add('hidden');
+            };
+            cancelBtn.classList.remove('hidden');
+            cancelBtn.onclick = function() {
+                // Restore form and button to original state
+                document.getElementById('desc').value = '';
+                document.getElementById('amount').value = '';
+                document.getElementById('paidBy').value = roommates[0] || '';
+                document.getElementById('expenseDate').value = '';
+                document.querySelectorAll('.split-among').forEach(cb => cb.checked = true);
+                splitBtnText.textContent = 'Split Expense';
+                splitBtn.onclick = addExpense;
+                cancelBtn.classList.add('hidden');
+                // Restore the original expense to the list if edit is cancelled
+                if (!expenses.includes(originalExpense)) {
+                    expenses.splice(idx, 0, originalExpense);
+                    updateExpenseList();
+                    updateBalances();
+                    updateDetailedBalances();
+                    saveData();
+                }
             };
         }
 
@@ -484,18 +577,10 @@ function updateExpenseList() {
                     }
                 });
             });
-            const ul = document.getElementById('balanceList');
-            ul.innerHTML = allNames.map(r => {
-                const bal = balances[r];
-                const cls = bal > 0 ? 'text-green-600' : bal < 0 ? 'text-red-600' : 'text-gray-600';
-                let verb = '';
-                if (bal > 0) verb = 'To receive';
-                else if (bal < 0) verb = 'To pay';
-                else verb = 'settled';
-                return `<li class="${cls}">${r}: ${verb} ₹${Math.abs(bal).toFixed(2)}</li>`;
-            }).join('');
-            // Update detailed balances
+            // Balances are computed here; the UI list was removed in favor of the Summary tab.
+            // Update detailed view and summary tab instead.
             updateDetailedBalances(balances);
+            updateSummaryTab();
         }
 
         function toggleTransactions() {
@@ -558,14 +643,22 @@ function updateExpenseList() {
                 let totalOwes = 0;
                 let totalGets = 0;
                 let totalSpent = expenses.filter(e => e.paidBy === a).reduce((sum, e) => sum + e.amount, 0);
+                // compute user color for card shadow and left border
+                let userIdx = roommates.findIndex(r => r === a);
+                if (userIdx === -1) userIdx = 0;
+                const userColor = getBadgeColor(userIdx, a);
+                const userDark = darkenHex(userColor, 0.2);
+                const rgb = hexToRgb(userColor);
+                const shadow = `rgba(${rgb.r},${rgb.g},${rgb.b},0.08)`;
                 if (showTransactions) {
-                    // Show each transaction separately for clarity
+                    // Show each transaction but make description wrap beneath amount for readability
                     allNames.forEach(b => {
                         if (a !== b) {
                             expenses.forEach(e => {
                                 if (e.paidBy === b && e.splitAmong.includes(a)) {
                                     const share = e.amount / e.splitAmong.length;
-                                    owes += `<li class="flex justify-between text-red-600 whitespace-normal break-words"><span>To pay <b>${b}</b>: ₹${share.toFixed(2)}</span><span class="text-gray-500 text-sm">${e.desc}</span></li>`;
+                                    const txDate = e.date ? (' · ' + new Date(e.date).toLocaleDateString()) : '';
+                                    owes += `<li class="space-y-1"><div class="flex items-start justify-between"><div class="flex items-center"><span class="inline-block tx-dot bg-red-600 mt-1" aria-hidden="true"></span><span class="text-red-600">To pay <b>${b}</b></span></div><span class="text-red-600 font-medium">₹${share.toFixed(2)}</span></div><div class="text-gray-500 text-sm tx-line">${e.desc}${txDate}</div></li>`;
                                     totalOwes += share;
                                 }
                             });
@@ -576,25 +669,24 @@ function updateExpenseList() {
                             expenses.forEach(e => {
                                 if (e.paidBy === a && e.splitAmong.includes(b)) {
                                     const share = e.amount / e.splitAmong.length;
-                                    gets += `<li class="flex justify-between text-green-600 whitespace-normal break-words"><span>To receive from <b>${b}</b>: ₹${share.toFixed(2)}</span><span class="text-gray-500 text-sm">${e.desc}</span></li>`;
+                                    const txDate2 = e.date ? (' · ' + new Date(e.date).toLocaleDateString()) : '';
+                                    gets += `<li class="space-y-1"><div class="flex items-start justify-between"><div class="flex items-center"><span class="inline-block tx-dot bg-green-600 mt-1" aria-hidden="true"></span><span class="text-green-600">To receive from <b>${b}</b></span></div><span class="text-green-600 font-medium">₹${share.toFixed(2)}</span></div><div class="text-gray-500 text-sm tx-line">${e.desc}${txDate2}</div></li>`;
                                     totalGets += share;
                                 }
                             });
                         }
                     });
                 } else {
-                    // Show only netted overall details
+                    // Show only netted overall details but format amount on right and description (none) below if needed
                     allNames.forEach(b => {
-                        // To pay: a pays b
                         let oweAmount = matrix[a][b];
                         if (a !== b && oweAmount > 0.009) {
-                            owes += `<li class="text-red-600 whitespace-normal break-words">To pay <b>${b}</b>: ₹${oweAmount.toFixed(2)}</li>`;
+                            owes += `<li class="flex justify-between text-red-600 whitespace-normal break-words"><span>To pay <b>${b}</b></span><span class="font-medium">₹${oweAmount.toFixed(2)}</span></li>`;
                             totalOwes += oweAmount;
                         }
-                        // To receive: a receives from b
                         let getAmount = matrix[b][a];
                         if (a !== b && getAmount > 0.009) {
-                            gets += `<li class="text-green-600 whitespace-normal break-words">To receive from <b>${b}</b>: ₹${getAmount.toFixed(2)}</li>`;
+                            gets += `<li class="flex justify-between text-green-600 whitespace-normal break-words"><span>To receive from <b>${b}</b></span><span class="font-medium">₹${getAmount.toFixed(2)}</span></li>`;
                             totalGets += getAmount;
                         }
                     });
@@ -607,7 +699,7 @@ function updateExpenseList() {
                 } else {
                     summary = `<span class="text-gray-500">(Settled)</span>`;
                 }
-                html += `<li class="bg-sky-50 rounded-lg p-4 mb-4"><div class="flex items-center justify-between"><span><b class="text-blue-600">${a}</b> ${summary}</span><span class="text-sky-700 font-medium">Total Spent: ₹${totalSpent.toFixed(2)}</span></div><ul class="mt-3 space-y-2">${owes || '<li class="text-gray-400 whitespace-normal break-words">No payment due</li>'}${gets || '<li class="text-gray-400 whitespace-normal break-words">No amount receivable</li>'}</ul></li>`;
+                html += `<li style="background:white; box-shadow:0 12px 30px ${shadow}; border-left:2px solid ${userDark};" class="rounded-lg p-4 mb-4"><div class="flex items-center justify-between"><span><b class="text-blue-600">${a}</b> ${summary}</span><span class="text-sky-700 font-medium">Total Spent: ₹${totalSpent.toFixed(2)}</span></div><ul class="mt-3 space-y-2">${owes || '<li class="text-gray-400 whitespace-normal break-words">No payment due</li>'}${gets || '<li class="text-gray-400 whitespace-normal break-words">No amount receivable</li>'}</ul></li>`;
             });
             if (!html) html = '<li class="text-gray-400">No detailed balances. All settled!</li>';
             ul.innerHTML = html;
@@ -673,6 +765,14 @@ function updateExpenseList() {
                 const panel = document.getElementById('tab-split');
                 panel.classList.remove('hidden');
                 panel.setAttribute('aria-hidden', 'false');
+            } else if (tab === 'summary') {
+                const b = document.getElementById('btn-summary');
+                b.classList.add('bg-white','text-sky-700','-mb-px','border-b-2','border-sky-600','shadow-soft-lg');
+                b.setAttribute('aria-selected', 'true');
+                const panel = document.getElementById('tab-summary');
+                panel.classList.remove('hidden');
+                panel.setAttribute('aria-hidden', 'false');
+                updateSummaryTab();
             } else if (tab === 'detailed') {
                 const b = document.getElementById('btn-detailed');
                 b.classList.add('bg-white','text-sky-700','-mb-px','border-b-2','border-sky-600','shadow-soft-lg');
@@ -682,6 +782,35 @@ function updateExpenseList() {
                 panel.setAttribute('aria-hidden', 'false');
                 updateDetailedBalances();
             }
+        }
+
+        function updateSummaryTab() {
+            const allNamesSet = new Set(roommates);
+            expenses.forEach(e => { allNamesSet.add(e.paidBy); e.splitAmong.forEach(r => allNamesSet.add(r)); });
+            const allNames = Array.from(allNamesSet);
+            const owes = {};
+            const gets = {};
+            allNames.forEach(n => { owes[n] = 0; gets[n] = 0; });
+            expenses.forEach(e => {
+                const share = e.amount / e.splitAmong.length;
+                e.splitAmong.forEach(r => {
+                    if (r === e.paidBy) {
+                        // payer effectively covers others' shares
+                        gets[e.paidBy] += (e.amount - share);
+                    } else {
+                        owes[r] += share;
+                    }
+                });
+            });
+            const ul = document.getElementById('summaryList');
+            if (!ul) return;
+            ul.innerHTML = allNames.map(n => {
+                const o = owes[n] || 0;
+                const g = gets[n] || 0;
+                const net = g - o;
+                const cls = net > 0 ? 'text-green-600' : net < 0 ? 'text-red-600' : 'text-gray-600';
+                return `<li class="bg-white rounded-lg p-3 flex items-center justify-between"><div><b class="text-sky-700">${n}</b><div class="text-sm text-gray-600">Owes: ₹${o.toFixed(2)} · Receives: ₹${g.toFixed(2)}</div></div><div class="${cls} font-medium">${net>0? 'Net +₹'+net.toFixed(2): net<0? 'Net -₹'+Math.abs(net).toFixed(2): 'Settled'}</div></li>`;
+            }).join('');
         }
 
     // Add removeRoommate function
@@ -880,6 +1009,26 @@ function updateExpenseList() {
         const emailBtn = document.getElementById('emailInviteBtn'); if (emailBtn) emailBtn.addEventListener('click', emailInviteLink);
         // Check hash on load
         setTimeout(checkForInviteInHash, 200);
+        // Limit the expense date picker to today (no future dates)
+        (function(){
+            const el = document.getElementById('expenseDate');
+            if (!el) return;
+            const today = new Date().toISOString().split('T')[0];
+            el.max = today;
+            // Make the entire input container open the date picker when clicked
+            const wrapper = el.closest('.flex-1') || el.parentElement;
+            if (wrapper) {
+                wrapper.addEventListener('click', function(e){
+                    // If the actual clicked element is a checkbox/select inside wrapper, ignore
+                    const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+                    if (tag === 'select' || tag === 'input' && e.target.type === 'checkbox') return;
+                    try { el.focus(); } catch (ex) {}
+                    if (typeof el.showPicker === 'function') {
+                        try { el.showPicker(); } catch (ex) {}
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 </html>
