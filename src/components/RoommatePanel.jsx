@@ -2,33 +2,77 @@ import { getBadgeColor, getTextColor } from '../utils/colors';
 
 export default function RoommatePanel({ roommates, roommateInput, setRoommateInput, addRoommate, removeRoommate, clearAllNames }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
-        <label className="text-sm font-semibold text-sky-700">Add Roommate</label>
-        <div className="mt-3 flex flex-col gap-3 md:flex-row">
-          <input value={roommateInput} onChange={(e) => setRoommateInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addRoommate()} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100" placeholder="Enter roommate name" />
-          <button onClick={addRoommate} className="rounded-full bg-gradient-to-r from-sky-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-glass transition hover:-translate-y-0.5 hover:from-sky-700 hover:to-blue-600">Add</button>
+    <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+      {/* Add Roommate Section */}
+      <section className="premium-card p-8">
+        <div className="space-y-2 mb-6">
+          <h2 className="text-2xl font-bold text-slate-900">Add Roommate</h2>
+          <p className="text-sm text-slate-500">Invite a new member to your expense group</p>
         </div>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button onClick={clearAllNames} className="rounded-full border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white">Delete All Names</button>
+        
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-0">
+            <input
+              value={roommateInput}
+              onChange={(e) => setRoommateInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addRoommate()}
+              className="input-premium flex-1 sm:rounded-r-none"
+              placeholder="Enter roommate name..."
+            />
+            <button
+              onClick={addRoommate}
+              className="btn-premium sm:rounded-l-none px-6"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-slate-100">
+          <button
+            onClick={clearAllNames}
+            className="rounded-full border border-red-200 bg-red-50/50 px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700"
+          >
+            Delete All
+          </button>
         </div>
       </section>
 
-      <aside className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Roommates</h2>
-          <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-sky-700">{roommates.length} total</span>
+      {/* Roommates List */}
+      <aside className="premium-card p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-slate-900">Members</h2>
+          <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+            {roommates.length}
+          </span>
         </div>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {roommates.length ? roommates.map((name, idx) => {
-            const bg = getBadgeColor(idx, name);
-            return (
-              <span key={name} className="inline-flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-semibold shadow-sm" style={{ background: bg, color: getTextColor(bg) }}>
-                {name}
-                <button onClick={() => removeRoommate(idx)} className="rounded-full bg-white/90 p-1 text-red-600 hover:bg-red-600 hover:text-white">✕</button>
-              </span>
-            );
-          }) : <p className="text-slate-400">No roommates yet.</p>}
+
+        <div className="space-y-2">
+          {roommates.length ? (
+            roommates.map((name, idx) => {
+              const bg = getBadgeColor(idx, name);
+              return (
+                <div
+                  key={name}
+                  className="flex items-center justify-between rounded-xl px-4 py-3 shadow-soft-xs ring-1 ring-slate-100 group"
+                  style={{ background: bg }}
+                >
+                  <span className="font-semibold text-sm" style={{ color: getTextColor(bg) }}>
+                    {name}
+                  </span>
+                  <button
+                    onClick={() => removeRoommate(idx)}
+                    className="rounded-lg p-1.5 transition-all opacity-0 group-hover:opacity-100"
+                    style={{ background: getTextColor(bg) + '20' }}
+                  >
+                    <span style={{ color: getTextColor(bg) }}>✕</span>
+                  </button>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-center text-slate-400 py-8 text-sm">No members yet. Add your first roommate!</p>
+          )}
         </div>
       </aside>
     </div>

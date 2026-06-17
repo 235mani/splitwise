@@ -1,17 +1,28 @@
+import logoIcon from "../assets/images/logo2.png";
+
 export default function Header() {
   return (
-    <header className="glass-panel rounded-3xl shadow-soft-lg p-6 md:p-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-blue-500 text-xl font-black text-white shadow-glass">SW</div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-sky-600">Room expense manager</p>
-            <h1 className="text-3xl font-semibold text-slate-800 md:text-4xl">Splitwise</h1>
-            <p className="text-slate-500">A cleaner, faster way to manage roommate balances.</p>
+    <header className="glass-panel top-0 z-50 rounded-2xl shadow-soft-md mx-4 mt-4 mb-8">
+      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between p-6 md:p-8">
+        
+        {/* Logo & Title Section */}
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left sm:items-center">
+          <div className="rounded-2xl shadow-glass ring-1 ring-indigo-400/20">
+            <img src={logoIcon} alt="Splitwise icon" className="h-14 w-14 object-contain" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-widest font-medium text-indigo-600">Expense Management</p>
+            <h1 className="text-4xl md:text-5xl font-bold gradient-text">Splitwise</h1>
+            <p className="text-sm text-slate-600 font-medium">Smart roommate expense tracking for 2026</p>
           </div>
         </div>
-        <button className="rounded-full bg-gradient-to-r from-sky-600 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-glass transition hover:-translate-y-0.5 hover:from-sky-700 hover:to-blue-600">Invite</button>
+
+        {/* share Button */}
+        <button className="btn-premium px-6 py-3 text-base whitespace-nowrap">
+          Invite Roommates
+        </button>
       </div>
     </header>
   );
 }
+

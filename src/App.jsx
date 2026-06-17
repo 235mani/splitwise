@@ -29,7 +29,7 @@ function App() {
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState('');
   const [paidBy, setPaidBy] = useState(() => readStoredArray('splitwise_roommates', defaultRoommates)[0] || '');
-  const [activeTab, setActiveTab] = useState('split');
+  const [activeTab, setActiveTab] = useState('names');
   const [showTransactions, setShowTransactions] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [editIndex, setEditIndex] = useState(null);

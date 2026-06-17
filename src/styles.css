@@ -6,52 +6,151 @@
 
 :root {
   color: #0f172a;
-  background:
-    radial-gradient(circle at top, rgba(191,219,254,0.65), rgba(248,250,252,0.95) 35%, #eff6ff 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e0e7ff 100%);
   font-family: 'Inter', system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #4f46e5;
 }
 
 * { box-sizing: border-box; }
-html, body, #root { min-height: 100%; }
+html, body, #root { min-height: 100vh; }
 body { margin: 0; }
 
+/* Modern Glass Panel */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
+.glass-panel-sm {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Premium Card */
+.premium-card {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-card:hover {
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Input Focus State */
+.input-premium {
+  @apply rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition;
+}
+
+.input-premium:focus {
+  @apply border-indigo-300 ring-2 ring-indigo-100 shadow-md;
+}
+
+.btn-premium {
+  @apply rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200;
+}
+
+.btn-premium:hover {
+  @apply -translate-y-0.5 shadow-xl from-indigo-700 to-indigo-600;
+}
+
+/* Custom Checkbox */
 .custom-checkbox {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 6px;
-  border: 1px solid rgba(99, 102, 241, 0.18);
+  width: 20px;
+  height: 20px;
+  border-radius: 8px;
+  border: 2px solid #cbd5e1;
   display: inline-block;
   position: relative;
   vertical-align: middle;
   background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.custom-checkbox:checked { background: linear-gradient(135deg, #2563eb, #3b82f6); border-color: transparent; }
+
+.custom-checkbox:hover {
+  border-color: #94a3b8;
+}
+
+.custom-checkbox:checked {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-color: transparent;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
 .custom-checkbox:checked::after {
   content: '';
   position: absolute;
-  left: 5px;
+  left: 6px;
   top: 2px;
   width: 5px;
-  height: 9px;
+  height: 10px;
   border: 2px solid white;
   border-top: 0;
   border-left: 0;
   transform: rotate(45deg);
 }
 
-.badge-sm { border-radius: 8px; padding: 0.25rem 0.5rem; }
-.tx-line { display:block; word-break: break-word; }
-.tx-dot { width: 8px; height: 8px; border-radius: 9999px; display: inline-block; margin-right: 0.5rem; }
+/* Badge Styling */
+.badge-sm { 
+  border-radius: 12px; 
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.badge-sm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Status Badge */
+.status-positive { color: var(--color-success); background: rgba(16, 185, 129, 0.1); }
+.status-negative { color: var(--color-error); background: rgba(239, 68, 68, 0.1); }
+.status-neutral { color: #64748b; background: rgba(100, 116, 139, 0.05); }
+
+/* Utility Classes */
+.tx-line { display: block; word-break: break-word; }
+.tx-dot { 
+  width: 10px; 
+  height: 10px; 
+  border-radius: 50%; 
+  display: inline-block; 
+  margin-right: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth Transitions */
+@layer components {
+  .transition-smooth {
+    @apply transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
