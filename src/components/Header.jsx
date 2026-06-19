@@ -2,27 +2,35 @@ import logoIcon from "../assets/images/logo2.png";
 
 export default function Header() {
   return (
-    <header className="glass-panel top-0 z-50 rounded-2xl shadow-soft-md mx-4 mt-4 mb-8">
-      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between p-6 md:p-8">
-        
-        {/* Logo & Title Section */}
-        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left sm:items-center">
-          <div className="rounded-2xl shadow-glass ring-1 ring-indigo-400/20">
-            <img src={logoIcon} alt="Splitwise icon" className="h-14 w-14 object-contain" />
+    <header className="glass-panel mb-6 sticky top-0 z-10 shadow-soft-md">
+      <div className="flex items-center justify-between p-4 md:p-4">
+        {/* Logo + Title */}
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl shadow-glass ring-1 ring-indigo-400/20">
+            <img
+              src={logoIcon}
+              alt="Splitwise icon"
+              className="h-10 w-10 md:h-14 md:w-14 object-contain"
+            />
           </div>
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-widest font-medium text-indigo-600">Expense Management</p>
-            <h1 className="text-4xl md:text-5xl font-bold gradient-text">Splitwise</h1>
-            <p className="text-sm text-slate-600 font-medium">Smart roommate expense tracking for 2026</p>
+
+          <div>
+
+            <h1 className="text-xl md:text-3xl font-bold gradient-text">
+              Splitwise
+            </h1>
+
+            <p className="text-xs md:text-sm text-slate-600 font-medium">
+              Smart expense tracking
+            </p>
           </div>
         </div>
 
-        {/* share Button */}
-        <button className="btn-premium px-6 py-3 text-base whitespace-nowrap">
-          Invite Roommates
+        {/* Invite Button */}
+        <button className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg text-xs">
+          Invite Friends
         </button>
       </div>
     </header>
   );
 }
-

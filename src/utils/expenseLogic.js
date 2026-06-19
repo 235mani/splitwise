@@ -36,30 +36,31 @@ export function buildBalanceMatrix(names, expenses) {
 }
 
 export function buildSummary(names, expenses) {
-  const owes = Object.fromEntries(names.map((name) => [name, 0]));
-  const gets = Object.fromEntries(names.map((name) => [name, 0]));
+  const paid = Object.fromEntries(
+    names.map((name) => [name, 0])
+  );
+
+  const share = Object.fromEntries(
+    names.map((name) => [name, 0])
+  );
 
   expenses.forEach((expense) => {
-    const share = expense.amount / expense.splitAmong.length;
+    const splitShare =
+      expense.amount / expense.splitAmong.length;
 
+    // actual payment
+    paid[expense.paidBy] += expense.amount;
+
+    // each participant's share
     expense.splitAmong.forEach((name) => {
-      if (name === expense.paidBy) {
-        gets[expense.paidBy] += expense.amount - share;
-      } else {
-        owes[name] += share;
-      }
+      share[name] += splitShare;
     });
   });
 
-  return names.map((name) => {
-    const amountOwed = owes[name] || 0;
-    const amountReceived = gets[name] || 0;
-
-    return {
-      name,
-      owes: amountOwed,
-      gets: amountReceived,
-      net: amountReceived - amountOwed,
-    };
-  });
+  return names.map((name) => ({
+    name,
+    paid: paid[name],
+    share: share[name],
+    net: paid[name] - share[name],
+  }));
 }

@@ -82,7 +82,7 @@ function App() {
     });
   };
 
-  const removeAllNames = () => {
+  const clearAllNames = () => {
     setConfirm({
       title: 'Delete all roommates?',
       message: 'This will also remove all expenses associated with these roommates.',
@@ -144,14 +144,30 @@ function App() {
     });
   };
 
+  const updateRoommate = (idx, newName) => {
+    setRoommates((prev) =>
+      prev.map((roommate, i) => (i === idx ? newName : roommate))
+    );
+  };
+
+  const deleteAllExpenses = () => {
+    setConfirm({
+      title: 'Delete all expenses?',
+      message: 'This action cannot be undone.',
+      onYes: () => {
+        setExpenses([]);
+        setConfirm(null);
+      },
+    });
+  };
+
   const summary = useMemo(() => buildSummary(allNames, expenses), [allNames, expenses]);
 
   return (
     <div className="min-h-screen text-slate-800">
-      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8">
-        <Header />
-
-        <main className="mt-6 rounded-3xl glass-panel p-5 shadow-soft-lg md:p-8">
+      <Header />
+      <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0">
+        <main className="mt-6 rounded-3xl">
           <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
           <section className="mt-6">
@@ -162,7 +178,8 @@ function App() {
                 setRoommateInput={setRoommateInput}
                 addRoommate={addRoommate}
                 removeRoommate={removeRoommate}
-                clearAllNames={removeAllNames}
+                clearAllNames={clearAllNames}
+                updateRoommate={updateRoommate}
               />
             )}
 
@@ -192,6 +209,7 @@ function App() {
                 expenses={expenses}
                 editExpense={editExpense}
                 deleteExpense={deleteExpense}
+                deleteAllExpenses={deleteAllExpenses}
               />
             )}
 
