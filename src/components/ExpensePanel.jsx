@@ -17,7 +17,7 @@ export default function ExpensePanel({
   return (
     <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
       {/* Add Expense Form */}
-      <section className="premium-card p-8 space-y-6">
+      <section className="premium-card p-4 space-y-6">
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-slate-900">Add Expense</h2>
           <p className="text-sm text-slate-500">Split shared costs with roommates</p>
@@ -137,7 +137,7 @@ export default function ExpensePanel({
       </section>
 
       {/* Expense Log */}
-      <aside className="premium-card p-8 flex flex-col">
+      <aside className="flex flex-col">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-900">History</h2>
           <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">

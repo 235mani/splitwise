@@ -82,6 +82,18 @@ function App() {
     });
   };
 
+  const removeAllNames = () => {
+    setConfirm({
+      title: 'Delete all roommates?',
+      message: 'This will also remove all expenses associated with these roommates.',
+      onYes: () => {
+        setExpenses([]);
+        setRoommates([]);
+        setConfirm(null);
+      },
+    });
+  };
+
   const addExpense = () => {
     const descValue = desc.trim();
     const amountValue = amount.trim();
@@ -150,7 +162,7 @@ function App() {
                 setRoommateInput={setRoommateInput}
                 addRoommate={addRoommate}
                 removeRoommate={removeRoommate}
-                clearAllNames={() => setRoommates([])}
+                clearAllNames={removeAllNames}
               />
             )}
 

@@ -51,7 +51,7 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
   });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+    <section className="rounded-3xl">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold text-slate-800">Detailed Summary</h2>
         <button
@@ -64,60 +64,71 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
         </button>
       </div>
 
-      <ul className="mt-5 space-y-4">
-        {rows.map((row) => {
-          const userIdx = roommates.findIndex((person) => person === row.name);
-          const userColor = getBadgeColor(userIdx >= 0 ? userIdx : 0, row.name);
-          const userDark = darkenHex(userColor, 0.2);
-          const shadow = hexToRgb(userColor);
+      {
+        rows.length > 0 ? (
+          <ul className="mt-5 space-y-4">
+            {rows.map((row) => {
+              const userIdx = roommates.findIndex((person) => person === row.name);
+              const userColor = getBadgeColor(userIdx >= 0 ? userIdx : 0, row.name);
+              const userDark = darkenHex(userColor, 0.2);
+              const shadow = hexToRgb(userColor);
 
-          return (
-            <li
-              key={row.name}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-              style={{ borderLeft: `3px solid ${userDark}`, boxShadow: `0 12px 30px rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, 0.12)` }}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-sky-700">{row.name}</p>
-                  <p className="text-sm text-slate-500">{row.summaryText}</p>
-                </div>
-                <span className="text-sm font-semibold text-slate-700">Total spent: ₹{row.totalSpent.toFixed(2)}</span>
-              </div>
+              return (
+                <li
+                  key={row.name}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  style={{ borderLeft: `3px solid ${userDark}`, boxShadow: `0 12px 30px rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, 0.12)` }}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-base font-semibold text-sky-700">{row.name}</p>
+                      <p className="text-sm text-slate-500">{row.summaryText}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700">Total spent: ₹{row.totalSpent.toFixed(2)}</span>
+                  </div>
 
-              <ul className="mt-3 space-y-2">
-                {row.paymentDue.length ? (
-                  row.paymentDue.map((item) => (
-                    <li key={`${row.name}-due-${item.other}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-rose-100 bg-rose-50/70 p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-sm font-semibold text-rose-700">To pay {item.other}</span>
-                        <span className="text-sm font-semibold text-rose-700">₹{item.share.toFixed(2)}</span>
-                      </div>
-                      {item.expense && <p className="mt-1 text-xs text-slate-500">{formatExpenseLabel(item.expense)}</p>}
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-sm text-slate-400">No payment due</li>
-                )}
+                  <ul className="mt-3 space-y-2">
+                    {row.paymentDue.length ? (
+                      row.paymentDue.map((item) => (
+                        <li key={`${row.name}-due-${item.other}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-rose-100 bg-rose-50/70 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="text-sm font-semibold text-rose-700">To pay {item.other}</span>
+                            <span className="text-sm font-semibold text-rose-700">₹{item.share.toFixed(2)}</span>
+                          </div>
+                          {item.expense && <p className="mt-1 text-xs text-slate-500">{formatExpenseLabel(item.expense)}</p>}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-sm text-slate-400">No payment due</li>
+                    )}
 
-                {row.paymentReceivable.length ? (
-                  row.paymentReceivable.map((item) => (
-                    <li key={`${row.name}-get-${item.other}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-sm font-semibold text-emerald-700">To receive from {item.other}</span>
-                        <span className="text-sm font-semibold text-emerald-700">₹{item.share.toFixed(2)}</span>
-                      </div>
-                      {item.expense && <p className="mt-1 text-xs text-slate-500">{formatExpenseLabel(item.expense)}</p>}
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-sm text-slate-400">No amount receivable</li>
-                )}
-              </ul>
-            </li>
-          );
-        })}
-      </ul>
+                    {row.paymentReceivable.length ? (
+                      row.paymentReceivable.map((item) => (
+                        <li key={`${row.name}-get-${item.other}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="text-sm font-semibold text-emerald-700">To receive from {item.other}</span>
+                            <span className="text-sm font-semibold text-emerald-700">₹{item.share.toFixed(2)}</span>
+                          </div>
+                          {item.expense && <p className="mt-1 text-xs text-slate-500">{formatExpenseLabel(item.expense)}</p>}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-sm text-slate-400">No amount receivable</li>
+                    )}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-slate-500 text-lg font-medium">No transactions yet</p>
+            <p className="text-slate-400 text-sm mt-2">Add some expenses to see the details here.</p>
+          </div>
+        )
+      }
+
+
     </section>
   );
 }

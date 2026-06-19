@@ -62,7 +62,7 @@ export default function RoommatePanel({ roommates, roommateInput, setRoommateInp
                   </span>
                   <button
                     onClick={() => removeRoommate(idx)}
-                    className="rounded-lg p-1.5 transition-all opacity-0 group-hover:opacity-100"
+                    className="rounded-lg p-1.5 transition-all"
                     style={{ background: getTextColor(bg) + '20' }}
                   >
                     <span style={{ color: getTextColor(bg) }}>✕</span>

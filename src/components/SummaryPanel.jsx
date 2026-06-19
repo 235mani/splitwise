@@ -1,6 +1,6 @@
 export default function SummaryPanel({ summary }) {
   return (
-    <section className="premium-card p-8">
+    <section className="">
       <div className="space-y-2 mb-8">
         <h2 className="text-3xl font-bold text-slate-900">Financial Summary</h2>
         <p className="text-sm text-slate-600">Real-time balance overview for all members</p>
