@@ -1,4 +1,4 @@
-import { TrashIcon } from 'lucide-react';
+import { Edit2Icon, TrashIcon } from 'lucide-react';
 import { getBadgeColor, getTextColor } from '../utils/colors';
 
 export default function ExpensePanel({
@@ -125,7 +125,7 @@ export default function ExpensePanel({
             onClick={addExpense}
             className="btn-premium flex-1"
           >
-            {editIndex !== null ? '✎ Update' : 'Add'}
+            {editIndex !== null ? 'Update' : 'Add'}
           </button>
           {editIndex !== null && (
             <button
@@ -140,14 +140,17 @@ export default function ExpensePanel({
 
       {/* Expense Log */}
       <aside className="flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">History</h2>
-          <button
-            onClick={deleteAllExpenses}
-            className="rounded-lg p-1.5 hover:bg-red-50 transition text-red-600"
-          >
-            <TrashIcon className="h-5 w-5" />
-          </button>
+        <div className="flex items-center justify-between m-3">
+          <div className="flex gap-3">
+            <h2 className="text-2xl font-bold text-slate-900">History</h2>
+            <button
+              onClick={deleteAllExpenses}
+              className="rounded-lg p-1.5 hover:bg-red-50 transition text-red-600"
+              title="Delete all expenses"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
+          </div>
           <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
             {expenses.length}
           </span>
@@ -176,13 +179,13 @@ export default function ExpensePanel({
                         onClick={() => editExpense(i)}
                         className="rounded-lg p-1.5 hover:bg-amber-50 transition text-amber-600"
                       >
-                        ✎
+                        <Edit2Icon className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => deleteExpense(i)}
-                        className="rounded-lg p-1.5 hover:bg-red-50 transition text-red-600"
+                        className="text-red-600"
                       >
-                        🗑️
+                        <TrashIcon className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
@@ -204,7 +207,7 @@ export default function ExpensePanel({
                       {e.splitAmong.map((name) => {
                         const idx = roommates.findIndex((r) => r === name);
                         const c = getBadgeColor(idx >= 0 ? idx : 0, name);
-                       
+
                         return (
                           <span
                             key={name}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getBadgeColor, getTextColor } from '../utils/colors';
+import { TrashIcon } from 'lucide-react';
 
 export default function RoommatePanel({
   roommates,
@@ -61,30 +62,31 @@ export default function RoommatePanel({
             />
             <button
               onClick={addRoommate}
-              className="btn-premium sm:rounded-l-none px-6"
+              className="btn-premium sm:rounded-l-none"
             >
               Add
             </button>
           </div>
         </div>
-
-        <div className="mt-6 pt-6 border-t border-slate-100">
-          <button
-            onClick={clearAllNames}
-            className="rounded-full border border-red-200 bg-red-50/50 px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700"
-          >
-            Delete all members
-          </button>
-        </div>
       </section>
 
       {/* Roommates List */}
-      <aside className="premium-card p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">Members</h2>
+      <aside className="p-2">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-3">
+            <h2 className="text-2xl font-bold text-slate-900">Members</h2>
+            <button
+              onClick={clearAllNames}
+              title="Delete all members">
+              <TrashIcon className="h-5 w-5 text-red-600" />
+            </button>
+          </div>
           <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
             {roommates.length}
           </span>
+        </div>
+        <div className='mb-6 text-sm text-slate-500'>
+          Tap on names to edit
         </div>
 
         <div className="space-y-2">
@@ -96,7 +98,7 @@ export default function RoommatePanel({
               return (
                 <div
                   key={`${name}-${idx}`}
-                  className="flex items-center justify-between rounded-xl px-4 py-3 shadow-soft-xs ring-1 ring-slate-100"
+                  className="flex items-center justify-between rounded-xl px-4 py-1.5 shadow-soft-xs ring-1 ring-slate-100"
                   style={{ background: bg }}
                 >
                   {editingIndex === idx ? (
@@ -128,7 +130,9 @@ export default function RoommatePanel({
                     className="ml-3 rounded-lg p-1.5 transition-all"
                     style={{ background: textColor + '20' }}
                   >
-                    <span style={{ color: textColor }}>✕</span>
+                    <span style={{ color: textColor }}>
+                      <TrashIcon className="h-5 w-5" />
+                    </span>
                   </button>
                 </div>
               );
