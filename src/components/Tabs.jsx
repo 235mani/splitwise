@@ -1,9 +1,10 @@
 export default function Tabs({ activeTab, onChange }) {
   const tabs = [
-    { id: "names", label: "Home" },
-    { id: "split", label: "Splits" },
-    { id: "summary", label: "Summary" },
-    { id: "detailed", label: "Details" },
+    { id: "names", label: "Home", isHidden: false },
+    { id: "split", label: "Expanse", isHidden: false },
+    { id: "brief", label: "Brief", isHidden: true },
+    { id: "detailed", label: "Summary", isHidden: false },
+    { id: "payment", label: "Payment", isHidden: false },
   ];
 
   return (
@@ -17,6 +18,7 @@ export default function Tabs({ activeTab, onChange }) {
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
+              hidden={tab.isHidden}
               className={`
                 relative
                 rounded-xl

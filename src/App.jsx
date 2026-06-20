@@ -7,6 +7,8 @@ import SummaryPanel from './components/SummaryPanel';
 import DetailedPanel from './components/DetailedPanel';
 import ConfirmDialog from './components/ConfirmDialog';
 import { buildSummary, getAllNames } from './utils/expenseLogic';
+import { useSwipeable } from "react-swipeable";
+import Payment from './components/Payment';
 
 const defaultRoommates = ['Alice', 'Bob', 'Charlie'];
 
@@ -30,9 +32,11 @@ function App() {
   const [expenseDate, setExpenseDate] = useState('');
   const [paidBy, setPaidBy] = useState(() => readStoredArray('splitwise_roommates', defaultRoommates)[0] || '');
   const [activeTab, setActiveTab] = useState('names');
+  const tabOrder = ['names', 'split', 'detailed', 'payment'];
   const [showTransactions, setShowTransactions] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
+  
 
   useEffect(() => {
     localStorage.setItem('splitwise_roommates', JSON.stringify(roommates));
@@ -161,14 +165,35 @@ function App() {
     });
   };
 
+  const handlers = useSwipeable({
+  onSwipedLeft: () => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+
+    if (currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+  },
+
+  onSwipedRight: () => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+
+    if (currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  },
+
+  preventScrollOnSwipe: true,
+  trackTouch: true,
+});
+
   const summary = useMemo(() => buildSummary(allNames, expenses), [allNames, expenses]);
 
   return (
     <div className="min-h-screen text-slate-800">
       <Header />
-      <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0">
+      <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0"  {...handlers}>
         <main className="mt-6 rounded-3xl">
-          <Tabs activeTab={activeTab} onChange={setActiveTab} />
+          <Tabs activeTab={activeTab} onChange={setActiveTab}/>
 
           <section className="mt-6">
             {activeTab === 'names' && (
@@ -223,6 +248,8 @@ function App() {
                 setShowTransactions={setShowTransactions}
               />
             )}
+
+            {activeTab === 'payment' && <Payment summary={summary} />}
           </section>
         </main>
       </div>
