@@ -31,7 +31,7 @@ export default function Tabs({ activeTab, onChange }) {
                 ${
                   active
                     ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
-                    : "text-slate-600 hover:bg-white hover:text-indigo-600"
+                    : "text-slate-600 hover:bg-gradient-to-r from-indigo-100 to-violet-100 hover:text-indigo-600"
                 }
               `}
             >

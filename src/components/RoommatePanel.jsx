@@ -12,32 +12,33 @@ export default function RoommatePanel({
   updateRoommate,
 }) {
   const [editingIndex, setEditingIndex] = useState(null);
-  const [editingName, setEditingName] = useState('');
+  const [editingData, setEditingData] = useState({
+    name: '',
+    mobile: '',
+    upiId: '',
+  });
 
-  const startEditing = (idx, currentName) => {
+  const startEditing = (idx, roommate) => {
     setEditingIndex(idx);
-    setEditingName(currentName);
+    setEditingData({ ...roommate });
   };
 
   const saveEdit = () => {
-    if (
-      editingIndex === null ||
-      !editingName.trim() ||
-      editingName === roommates[editingIndex]
-    ) {
+    if (editingIndex === null || !editingData.name.trim()) {
       setEditingIndex(null);
-      setEditingName('');
       return;
     }
 
-    updateRoommate(editingIndex, editingName.trim());
+    updateRoommate(editingIndex, {
+      ...editingData,
+      name: editingData.name.trim(),
+    });
+
     setEditingIndex(null);
-    setEditingName('');
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingName('');
   };
 
   return (
@@ -45,95 +46,214 @@ export default function RoommatePanel({
       {/* Add Roommate Section */}
       <section className="premium-card p-8">
         <div className="space-y-2 mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">Add roommate</h2>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Add roommate
+          </h2>
           <p className="text-sm text-slate-500">
             Add a new member to your expense group
           </p>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:gap-0">
-            <input
-              value={roommateInput}
-              onChange={(e) => setRoommateInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addRoommate()}
-              className="input-premium flex-1 sm:rounded-r-none"
-              placeholder="Enter roommate name..."
-            />
-            <button
-              onClick={addRoommate}
-              className="btn-premium sm:rounded-l-none"
-            >
-              Add
-            </button>
-          </div>
+        <div className="space-y-3">
+          <input
+            value={roommateInput.name}
+            onChange={(e) =>
+              setRoommateInput((prev) => ({
+                ...prev,
+                name: e.target.value,
+              }))
+            }
+            className="input-premium w-full"
+            placeholder="Name *"
+          />
+
+          <input
+            value={roommateInput.mobile}
+            onChange={(e) =>
+              setRoommateInput((prev) => ({
+                ...prev,
+                mobile: e.target.value,
+              }))
+            }
+            className="input-premium w-full"
+            placeholder="Mobile Number (Optional)"
+          />
+
+          <input
+            value={roommateInput.upiId}
+            onChange={(e) =>
+              setRoommateInput((prev) => ({
+                ...prev,
+                upiId: e.target.value,
+              }))
+            }
+            onKeyDown={(e) => e.key === 'Enter' && addRoommate()}
+            className="input-premium w-full"
+            placeholder="UPI ID (Optional)"
+          />
+
+          <button
+            onClick={addRoommate}
+            className="btn-premium w-full"
+          >
+            Add
+          </button>
         </div>
       </section>
 
-      {/* Roommates List */}
+      {/* Members List */}
       <aside className="p-2">
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
-            <h2 className="text-2xl font-bold text-slate-900">Members</h2>
+            <h2 className="text-2xl font-bold text-slate-900">
+              Members
+            </h2>
+
             <button
               onClick={clearAllNames}
-              title="Delete all members">
+              title="Delete all members"
+            >
               <TrashIcon className="h-5 w-5 text-red-600" />
             </button>
           </div>
+
           <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
             {roommates.length}
           </span>
         </div>
-        <div className='mb-6 text-sm text-slate-500'>
-          Tap on names to edit
+
+        <div className="mb-6 text-sm text-slate-500">
+          Tap on a member card to edit
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {roommates.length ? (
-            roommates.map((name, idx) => {
-              const bg = getBadgeColor(idx, name);
+            roommates.map((roommate, idx) => {
+              const bg = getBadgeColor(idx, roommate.name);
               const textColor = getTextColor(bg);
 
               return (
                 <div
-                  key={`${name}-${idx}`}
-                  className="flex items-center justify-between rounded-xl px-4 py-1.5 shadow-soft-xs ring-1 ring-slate-100"
+                  key={`${roommate.name}-${idx}`}
+                  className="rounded-xl pl-4 py-3 shadow-soft-xs ring-1 ring-slate-100"
                   style={{ background: bg }}
                 >
                   {editingIndex === idx ? (
-                    <input
-                      autoFocus
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveEdit();
-                        if (e.key === 'Escape') cancelEdit();
-                      }}
-                      className="flex-1 bg-transparent outline-none font-semibold text-sm"
-                      style={{ color: textColor }}
-                    />
+                    <div
+                      tabIndex={-1}
+                      onBlur={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget)) {
+                          cancelEdit();
+                        }
+                      }} className="space-y-2">
+                      <input
+                        autoFocus
+                        value={editingData.name}
+                        onChange={(e) =>
+                          setEditingData((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
+                        placeholder="Name"
+                        className="w-full bg-white/40 rounded px-2 py-1 text-sm outline-none"
+                      />
+
+                      <input
+                        value={editingData.mobile}
+                        onChange={(e) =>
+                          setEditingData((prev) => ({
+                            ...prev,
+                            mobile: e.target.value,
+                          }))
+                        }
+                        placeholder="Mobile Number"
+                        className="w-full bg-white/40 rounded px-2 py-1 text-sm outline-none"
+                      />
+
+                      <input
+                        value={editingData.upiId}
+                        onChange={(e) =>
+                          setEditingData((prev) => ({
+                            ...prev,
+                            upiId: e.target.value,
+                          }))
+                        }
+                        placeholder="UPI ID"
+                        className="w-full bg-white/40 rounded px-2 py-1 text-sm outline-none"
+                      />
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={saveEdit}
+                          className="text-xs font-semibold"
+                          style={{ color: textColor }}
+                        >
+                          Save
+                        </button>
+
+                        <button
+                          onClick={cancelEdit}
+                          className="text-xs"
+                          style={{ color: textColor }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
                   ) : (
-                    <span
-                      onClick={() => startEditing(idx, name)}
-                      className="flex-1 font-semibold text-sm cursor-text"
-                      style={{ color: textColor }}
-                      title="Click to edit"
+                    <div
+                      onClick={() =>
+                        startEditing(idx, roommate)
+                      }
+                      className="cursor-pointer"
                     >
-                      {name}
-                    </span>
+                      <div className="flex justify-between items-center">
+                        <div
+                          className="font-semibold text-sm"
+                          style={{ color: textColor }}
+                        >
+                          {roommate.name}
+                        </div>
+                        <span style={{ color: textColor }} onClick={(e) => {
+                          e.stopPropagation();
+                          removeRoommate(idx);
+                        }} className="px-4">
+                          <TrashIcon className="h-5 w-5" />
+                        </span>
+                      </div>
+
+                      {roommate.mobile && (
+                        <div
+                          className="text-xs mt-1"
+                          style={{ color: textColor }}
+                        >
+                          Mobile: {roommate.mobile}
+                        </div>
+                      )}
+
+                      {roommate.upiId && (
+                        <div
+                          className="text-xs"
+                          style={{ color: textColor }}
+                        >
+                          UPI Id: {roommate.upiId}
+                        </div>
+                      )}
+                    </div>
                   )}
 
-                  <button
-                    onClick={() => removeRoommate(idx)}
-                    className="ml-3 rounded-lg p-1.5 transition-all"
-                    style={{ background: textColor + '20' }}
-                  >
-                    <span style={{ color: textColor }}>
-                      <TrashIcon className="h-5 w-5" />
-                    </span>
-                  </button>
+                  {/* <div className="flex justify-end mt-2">
+                    <button
+                      onClick={() => removeRoommate(idx)}
+                      className="rounded-lg p-1.5 transition-all"
+                      style={{ background: textColor + '20' }}
+                    >
+                      <span style={{ color: textColor }}>
+                        <TrashIcon className="h-5 w-5" />
+                      </span>
+                    </button>
+                  </div> */}
                 </div>
               );
             })

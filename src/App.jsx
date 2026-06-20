@@ -10,7 +10,11 @@ import { buildSummary, getAllNames } from './utils/expenseLogic';
 import { useSwipeable } from "react-swipeable";
 import Payment from './components/Payment';
 
-const defaultRoommates = ['Alice', 'Bob', 'Charlie'];
+const defaultRoommates = [
+  { name: 'Alice', mobile: '', upiId: '' },
+  { name: 'Bob', mobile: '', upiId: '' },
+  { name: 'Charlie', mobile: '', upiId: '' },
+];
 
 function readStoredArray(key, fallback) {
   try {
@@ -26,17 +30,38 @@ function readStoredArray(key, fallback) {
 function App() {
   const [roommates, setRoommates] = useState(() => readStoredArray('splitwise_roommates', defaultRoommates));
   const [expenses, setExpenses] = useState(() => readStoredArray('splitwise_expenses', []));
-  const [roommateInput, setRoommateInput] = useState('');
+  // const [roommateInput, setRoommateInput] = useState('');
+  const [roommateInput, setRoommateInput] = useState({
+    name: '',
+    mobile: '',
+    upiId: '',
+  });
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState('');
-  const [paidBy, setPaidBy] = useState(() => readStoredArray('splitwise_roommates', defaultRoommates)[0] || '');
+  const [paidBy, setPaidBy] = useState(
+    () => readStoredArray('splitwise_roommates', defaultRoommates)[0]?.name || ''
+  );
   const [activeTab, setActiveTab] = useState('names');
   const tabOrder = ['names', 'split', 'detailed', 'payment'];
   const [showTransactions, setShowTransactions] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
-  
+
+  useEffect(() => {
+    if (
+      roommates.length &&
+      typeof roommates[0] === 'string'
+    ) {
+      setRoommates(
+        roommates.map((name) => ({
+          name,
+          mobile: '',
+          upiId: '',
+        }))
+      );
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('splitwise_roommates', JSON.stringify(roommates));
@@ -47,34 +72,47 @@ function App() {
   }, [expenses]);
 
   useEffect(() => {
-    if (roommates.length && !roommates.includes(paidBy)) setPaidBy(roommates[0]);
+    if (
+      roommates.length &&
+      !roommates.some((r) => r.name === paidBy)
+    ) {
+      setPaidBy(roommates[0]?.name);
+    }
   }, [roommates, paidBy]);
 
   const splitSelected = useMemo(() => {
-    return roommates.map((name) => ({ name, checked: true }));
+    return roommates.map((roommate) => ({
+      name: roommate.name,
+      checked: true,
+    }));
   }, [roommates]);
 
   const [splitAmong, setSplitAmong] = useState(splitSelected);
 
   useEffect(() => {
-    setSplitAmong(roommates.map((name) => ({ name, checked: true })));
+    setSplitAmong(
+      roommates.map((roommate) => ({
+        name: roommate.name,
+        checked: true,
+      }))
+    );
   }, [roommates]);
 
   const allNames = useMemo(() => getAllNames(roommates, expenses), [roommates, expenses]);
 
   const addRoommate = () => {
-    const name = roommateInput.trim();
+    const { name, mobile, upiId } = roommateInput;
     if (!name) return;
-    if (roommates.some(r => r.toLowerCase() === name.toLowerCase())) {
+    if (roommates.some(r => r.name.toLowerCase() === name.toLowerCase())) {
       setConfirm({ title: 'Roommate already exists', message: 'That name is already on the list.' });
       return;
     }
-    setRoommates([...roommates, name]);
-    setRoommateInput('');
+    setRoommates([...roommates, { name, mobile, upiId }]);
+    setRoommateInput({ name: '', mobile: '', upiId: '' });
   };
 
   const removeRoommate = (idx) => {
-    const name = roommates[idx];
+    const name = roommates[idx].name;
     setConfirm({
       title: 'Remove roommate?',
       message: `This will also remove any expenses involving ${name}.`,
@@ -122,8 +160,8 @@ function App() {
     } else {
       setExpenses([...expenses, newExpense]);
     }
-    setDesc(''); setAmount(''); setExpenseDate(''); setPaidBy(roommates[0] || '');
-    setSplitAmong(roommates.map((name) => ({ name, checked: true })));
+    setDesc(''); setAmount(''); setExpenseDate(''); setPaidBy(roommates[0]?.name || '');
+    setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: true })));
   };
 
   const editExpense = (idx) => {
@@ -133,7 +171,7 @@ function App() {
     setAmount(String(item.amount));
     setExpenseDate(item.date || '');
     setPaidBy(item.paidBy);
-    setSplitAmong(roommates.map((name) => ({ name, checked: item.splitAmong.includes(name) })));
+    setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: item.splitAmong.includes(roommate.name) })));
     setActiveTab('split');
   };
 
@@ -148,9 +186,14 @@ function App() {
     });
   };
 
-  const updateRoommate = (idx, newName) => {
+  const updateRoommate = (
+    idx,
+    updatedRoommate
+  ) => {
     setRoommates((prev) =>
-      prev.map((roommate, i) => (i === idx ? newName : roommate))
+      prev.map((roommate, i) =>
+        i === idx ? updatedRoommate : roommate
+      )
     );
   };
 
@@ -166,34 +209,34 @@ function App() {
   };
 
   const handlers = useSwipeable({
-  onSwipedLeft: () => {
-    const currentIndex = tabOrder.indexOf(activeTab);
+    onSwipedLeft: () => {
+      const currentIndex = tabOrder.indexOf(activeTab);
 
-    if (currentIndex < tabOrder.length - 1) {
-      setActiveTab(tabOrder[currentIndex + 1]);
-    }
-  },
+      if (currentIndex < tabOrder.length - 1) {
+        setActiveTab(tabOrder[currentIndex + 1]);
+      }
+    },
 
-  onSwipedRight: () => {
-    const currentIndex = tabOrder.indexOf(activeTab);
+    onSwipedRight: () => {
+      const currentIndex = tabOrder.indexOf(activeTab);
 
-    if (currentIndex > 0) {
-      setActiveTab(tabOrder[currentIndex - 1]);
-    }
-  },
+      if (currentIndex > 0) {
+        setActiveTab(tabOrder[currentIndex - 1]);
+      }
+    },
 
-  preventScrollOnSwipe: true,
-  trackTouch: true,
-});
+    preventScrollOnSwipe: true,
+    trackTouch: true,
+  });
 
   const summary = useMemo(() => buildSummary(allNames, expenses), [allNames, expenses]);
 
   return (
-    <div className="min-h-screen text-slate-800">
+    <div className="min-h-screen text-slate-800" {...handlers}>
       <Header />
-      <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0"  {...handlers}>
+      <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0">
         <main className="mt-6 rounded-3xl">
-          <Tabs activeTab={activeTab} onChange={setActiveTab}/>
+          <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
           <section className="mt-6">
             {activeTab === 'names' && (
@@ -228,8 +271,8 @@ function App() {
                   setDesc('');
                   setAmount('');
                   setExpenseDate('');
-                  setPaidBy(roommates[0] || '');
-                  setSplitAmong(roommates.map((name) => ({ name, checked: true })));
+                  setPaidBy(roommates[0]?.name || '');
+                  setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: true })));
                 }}
                 expenses={expenses}
                 editExpense={editExpense}
@@ -238,7 +281,7 @@ function App() {
               />
             )}
 
-            {activeTab === 'summary' && <SummaryPanel summary={summary} />}
+            {activeTab === 'brief' && <SummaryPanel summary={summary} />}
 
             {activeTab === 'detailed' && (
               <DetailedPanel
@@ -249,7 +292,7 @@ function App() {
               />
             )}
 
-            {activeTab === 'payment' && <Payment summary={summary} />}
+            {activeTab === 'payment' && <Payment summary={summary} roommates={roommates}/>}
           </section>
         </main>
       </div>

@@ -1,132 +1,193 @@
 import { useState } from "react";
 import QRCode from "react-qr-code";
 
-export default function Payment({ summary }) {
-  const [selectedPayment, setSelectedPayment] = useState(null);
+export default function Payment({
+    summary,
+    roommates,
+}) {
+    const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // Demo UPI IDs
-  const upiMap = {
-    mani: "talampally.manideep@ybl",
-    deep: "talampally.manideep@ybl",
-    talampally: "talampally.manideep@ybl",
-  };
+    const getRoommate = (name) =>
+        roommates.find((r) => r.name === name);
 
-  // Convert summary to payment settlements
-  const settlements = [];
+    const getUpiId = (name) => {
+        const roommate = getRoommate(name);
+        return roommate?.upiId || "";
+    };
 
-  Object.entries(summary || {}).forEach(([ind, obj]) => {
-    if (obj.net < 0) {
-      settlements.push({
-        from: obj.name,
-        amount: Math.abs(obj.net),
-      });
+    function calculateSettlements(summary) {
+        const creditors = summary
+            .filter((p) => p.net > 0)
+            .map((p) => ({ ...p }));
+
+        const debtors = summary
+            .filter((p) => p.net < 0)
+            .map((p) => ({
+                ...p,
+                net: Math.abs(p.net),
+            }));
+
+        const settlements = [];
+
+        let i = 0;
+        let j = 0;
+
+        while (
+            i < debtors.length &&
+            j < creditors.length
+        ) {
+            const amount = Math.min(
+                debtors[i].net,
+                creditors[j].net
+            );
+
+            settlements.push({
+                from: debtors[i].name,
+                to: creditors[j].name,
+                amount,
+            });
+
+            debtors[i].net -= amount;
+            creditors[j].net -= amount;
+
+            if (debtors[i].net < 0.01) i++;
+            if (creditors[j].net < 0.01) j++;
+        }
+
+        return settlements;
     }
-  });
 
-  const generateUpiLink = (person, amount) => {
-    const upiId = upiMap[person] || "8522033044@ybl";
+    const settlements = calculateSettlements(
+        summary || []
+    );
 
-    return `upi://pay?pa=${upiId}&pn=${person}&am=${amount}&cu=INR&mc=0000&mode=01&purpose=00`;
-  };
+    const generateUpiLink = (
+        receiverName,
+        amount
+    ) => {
+        const receiver =
+            getRoommate(receiverName);
 
-  return (
-    <div className="space-y-6">
-      <div className="rounded-3xl bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-3xl font-bold">
-          UPI Payments
-        </h2>
+        if (!receiver?.upiId) {
+            return "";
+        }
 
-        {settlements.length === 0 ? (
-          <p className="text-gray-500">
-            No pending payments 🎉
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {settlements.map((item, index) => (
-              <div
-                key={index}
-                className="flex flex-col gap-3 rounded-xl border p-4 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <div className="font-semibold">
-                    {item.from}
-                  </div>
+        return `upi://pay?pa=${receiver.upiId}&pn=${encodeURIComponent(
+            receiver.name
+        )}&am=${amount}&cu=INR`;
+    };
 
-                  <div className="text-sm text-gray-500">
-                    Amount Due
-                  </div>
+    return (
+        <div className="space-y-6">
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-3xl font-bold">
+                    UPI Payments
+                </h2>
 
-                  <div className="text-lg font-bold text-red-600">
-                    ₹{item.amount.toFixed(2)}
-                  </div>
-                </div>
+                {settlements.length === 0 ? (
+                    <p className="text-gray-500">
+                        No pending payments 🎉
+                    </p>
+                ) : (
+                    <div className="space-y-4">
+                        {settlements.map((item, index) => (
+                            <div
+                                key={index}
+                                className="flex flex-col gap-3 rounded-xl border p-4 md:flex-row md:items-center md:justify-between"
+                            >
+                                <div>
+                                    <div className="font-semibold">
+                                        {item.from} → {item.to}
+                                    </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() =>
-                      setSelectedPayment({
-                        person: item.from,
-                        amount: item.amount,
-                      })
-                    }
-                    className="rounded-lg bg-indigo-600 px-4 py-2 text-white"
-                  >
-                    Show QR
-                  </button>
+                                    <div className="text-sm text-gray-500">
+                                        Amount Due
+                                    </div>
 
-                    {/* {generateUpiLink(item.from, item.amount)} */}
-                  <a
-                    href={generateUpiLink(
-                      item.from,
-                      item.amount
-                    )}
-                    className="rounded-lg bg-green-600 px-4 py-2 text-white"
-                  >
-                    Pay Now
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                                    <div className="text-lg font-bold text-red-600">
+                                        ₹{item.amount.toFixed(2)}
+                                    </div>
+                                </div>
 
-      {selectedPayment && (
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-2xl font-bold">
-            Scan & Pay
-          </h3>
+                                <div className="flex items-center gap-3">
+                                    {!getUpiId(item.to) && (
+                                        <div className="text-xs text-red-500">
+                                            No UPI ID configured for&nbsp;
+                                            <span className="font-semibold">
+                                                 '{item.to}'
+                                            </span>
+                                        </div>
+                                    )}
 
-          <div className="flex justify-center">
-            <QRCode
-              size={220}
-              value={generateUpiLink(
-                selectedPayment.person,
-                selectedPayment.amount
-              )}
-            />
-          </div>
-
-          <div className="mt-4 text-center">
-            <div className="font-semibold">
-              {selectedPayment.person}
+                                    <button
+                                        disabled={!getUpiId(item.to)}
+                                        onClick={() =>
+                                            setSelectedPayment({
+                                                payer: item.from,
+                                                receiver: item.to,
+                                                amount: item.amount,
+                                            })
+                                        }
+                                        className="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        Pay via QR
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            <div className="text-xl font-bold">
-              ₹{selectedPayment.amount.toFixed(2)}
-            </div>
-          </div>
+            {selectedPayment && (
+                <div className="rounded-3xl bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-2xl font-bold">
+                        Scan & Pay
+                    </h3>
 
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setSelectedPayment(null)}
-              className="rounded-lg bg-gray-200 px-4 py-2"
-            >
-              Close
-            </button>
-          </div>
+                    <div className="flex justify-center">
+                        <QRCode
+                            size={220}
+                            value={generateUpiLink(
+                                selectedPayment.receiver,
+                                selectedPayment.amount
+                            )}
+                        />
+                    </div>
+
+                    <div className="mt-4 text-center">
+                        <div className="font-semibold">
+                            Pay to: {selectedPayment.receiver}
+                        </div>
+
+                        <div className="text-sm text-gray-500">
+                            From: {selectedPayment.payer}
+                        </div>
+
+                        <div className="text-xl font-bold">
+                            ₹{selectedPayment.amount.toFixed(2)}
+                        </div>
+
+                        <div className="text-sm text-slate-500 mt-2">
+                            UPI ID:{" "}
+                            {getUpiId(
+                                selectedPayment.receiver
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mt-4 text-center">
+                        <button
+                            onClick={() =>
+                                setSelectedPayment(null)
+                            }
+                            className="rounded-lg bg-gray-200 px-4 py-2"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }

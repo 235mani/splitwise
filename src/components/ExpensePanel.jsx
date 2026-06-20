@@ -67,8 +67,13 @@ export default function ExpensePanel({
               onChange={(e) => setPaidBy(e.target.value)}
               className="input-premium w-full"
             >
-              {roommates.map((name) => (
-                <option key={name} value={name}>{name}</option>
+              {roommates.map((roommate) => (
+                <option
+                  key={roommate.name}
+                  value={roommate.name}
+                >
+                  {roommate.name}
+                </option>
               ))}
             </select>
           </div>
@@ -80,14 +85,14 @@ export default function ExpensePanel({
             <span className="text-sm font-semibold text-slate-700">Split among:</span>
             <button
               type="button"
-              onClick={() => setSplitAmong(roommates.map((name) => ({ name, checked: true })))}
+              onClick={() => setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: true })))}
               className="btn-secondary px-2.5 py-1 text-xs"
             >
               Select All
             </button>
             <button
               type="button"
-              onClick={() => setSplitAmong(roommates.map((name) => ({ name, checked: false })))}
+              onClick={() => setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: false })))}
               className="btn-secondary px-2.5 py-1 text-xs"
             >
               Clear
@@ -159,7 +164,7 @@ export default function ExpensePanel({
         <div className="space-y-3 flex-1 overflow-y-auto">
           {expenses.length ? (
             expenses.map((e, i) => {
-              const payerIdx = roommates.findIndex((r) => r === e.paidBy);
+              const payerIdx = roommates.findIndex((r) => r.name === e.paidBy);
               const bg = getBadgeColor(payerIdx >= 0 ? payerIdx : 0, e.paidBy);
               const text = getTextColor(bg);
               return (
@@ -205,7 +210,7 @@ export default function ExpensePanel({
                     <div className="flex items-center flex-wrap gap-1">
                       <p className="text-slate-600"> Split among: </p>
                       {e.splitAmong.map((name) => {
-                        const idx = roommates.findIndex((r) => r === name);
+                        const idx = roommates.findIndex((r) => r.name === name);
                         const c = getBadgeColor(idx >= 0 ? idx : 0, name);
 
                         return (

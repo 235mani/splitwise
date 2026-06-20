@@ -68,7 +68,7 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
         rows.length > 0 ? (
           <ul className="mt-5 space-y-4">
             {rows.map((row) => {
-              const userIdx = roommates.findIndex((person) => person === row.name);
+              const userIdx = roommates.findIndex((person) => person.name === row.name);
               const userColor = getBadgeColor(userIdx >= 0 ? userIdx : 0, row.name);
               const userDark = darkenHex(userColor, 0.2);
               const shadow = hexToRgb(userColor);
