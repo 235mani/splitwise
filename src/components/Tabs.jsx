@@ -8,7 +8,7 @@ export default function Tabs({ activeTab, onChange }) {
   ];
 
   return (
-    <nav className="mb-6 sticky top-20 md:top-24 lg:top-24 z-10">
+    <nav className="my-3 sticky top-24 z-10">
       <div className="grid grid-cols-4 gap-1 rounded-2xl bg-white/70 p-1 shadow-soft-xs ring-1 ring-slate-300 backdrop-blur-sm">
         {tabs.map((tab) => {
           const active = activeTab === tab.id;

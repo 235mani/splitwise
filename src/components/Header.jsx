@@ -2,8 +2,8 @@ import logoIcon from "../assets/images/logo2.png";
 
 export default function Header() {
   return (
-    <header className="glass-panel mb-6 sticky top-0 z-10 shadow-soft-md">
-      <div className="flex items-center justify-between p-4 md:p-4">
+    <header className="glass-panel sticky top-0 z-10 shadow-soft-md">
+      <div className="flex items-center justify-between pr-0 p-4 md:p-4">
         {/* Logo + Title */}
         <div className="flex items-center gap-3">
           <div className="rounded-xl shadow-glass ring-1 ring-indigo-400/20">
@@ -26,10 +26,9 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Invite Button */}
-        <button className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg text-xs">
-          Invite Friends
-        </button>
+        <a className="text-sm text-slate-500" href="#footer" title="About me">
+          By Manideep Talampally
+        </a>
       </div>
     </header>
   );

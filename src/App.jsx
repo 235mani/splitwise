@@ -9,6 +9,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import { buildSummary, getAllNames } from './utils/expenseLogic';
 import { useSwipeable } from "react-swipeable";
 import Payment from './components/Payment';
+import Footer from './components/Footer';
 
 const defaultRoommates = [
   { name: 'Alice', mobile: '', upiId: '' },
@@ -208,26 +209,31 @@ function App() {
     });
   };
 
-  const handlers = useSwipeable({
-    onSwipedLeft: () => {
-      const currentIndex = tabOrder.indexOf(activeTab);
+const handlers = useSwipeable({
+  onSwiped: ({ dir, deltaX, deltaY }) => {
+    const horizontal = Math.abs(deltaX);
+    const vertical = Math.abs(deltaY);
 
-      if (currentIndex < tabOrder.length - 1) {
-        setActiveTab(tabOrder[currentIndex + 1]);
-      }
-    },
+    // Ignore normal scrolling
+    if (horizontal < 50) return;
 
-    onSwipedRight: () => {
-      const currentIndex = tabOrder.indexOf(activeTab);
+    // Require horizontal movement to dominate
+    if (horizontal < vertical * 2) return;
 
-      if (currentIndex > 0) {
-        setActiveTab(tabOrder[currentIndex - 1]);
-      }
-    },
+    const currentIndex = tabOrder.indexOf(activeTab);
 
-    preventScrollOnSwipe: true,
-    trackTouch: true,
-  });
+    if (dir === "Left" && currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+
+    if (dir === "Right" && currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  },
+
+  preventScrollOnSwipe: false,
+  trackTouch: true,
+});
 
   const summary = useMemo(() => buildSummary(allNames, expenses), [allNames, expenses]);
 
@@ -235,10 +241,10 @@ function App() {
     <div className="min-h-screen text-slate-800" {...handlers}>
       <Header />
       <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0">
-        <main className="mt-6 rounded-3xl">
+        <main className="rounded-3xl">
           <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
-          <section className="mt-6">
+          <section>
             {activeTab === 'names' && (
               <RoommatePanel
                 roommates={roommates}
@@ -296,7 +302,7 @@ function App() {
           </section>
         </main>
       </div>
-
+      <Footer />
       <ConfirmDialog
         confirm={confirm}
         onCancel={() => setConfirm(null)}
