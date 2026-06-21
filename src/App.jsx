@@ -102,10 +102,14 @@ function App() {
   const allNames = useMemo(() => getAllNames(roommates, expenses), [roommates, expenses]);
 
   const addRoommate = () => {
+    if (!roommateInput.name.trim()) {
+      setConfirm({ title: 'Name is required', message: 'Please enter a name for the roommate.', singleButton: true });
+      return;
+    }
     const { name, mobile, upiId } = roommateInput;
     if (!name) return;
     if (roommates.some(r => r.name.toLowerCase() === name.toLowerCase())) {
-      setConfirm({ title: 'Roommate already exists', message: 'That name is already on the list.' });
+      setConfirm({ title: 'Roommate already exists', message: 'That name is already on the list.', singleButton: true });
       return;
     }
     setRoommates([...roommates, { name, mobile, upiId }]);
@@ -209,31 +213,31 @@ function App() {
     });
   };
 
-const handlers = useSwipeable({
-  onSwiped: ({ dir, deltaX, deltaY }) => {
-    const horizontal = Math.abs(deltaX);
-    const vertical = Math.abs(deltaY);
+  const handlers = useSwipeable({
+    onSwiped: ({ dir, deltaX, deltaY }) => {
+      const horizontal = Math.abs(deltaX);
+      const vertical = Math.abs(deltaY);
 
-    // Ignore normal scrolling
-    if (horizontal < 50) return;
+      // Ignore normal scrolling
+      if (horizontal < 50) return;
 
-    // Require horizontal movement to dominate
-    if (horizontal < vertical * 2) return;
+      // Require horizontal movement to dominate
+      if (horizontal < vertical * 3) return;
 
-    const currentIndex = tabOrder.indexOf(activeTab);
+      const currentIndex = tabOrder.indexOf(activeTab);
 
-    if (dir === "Left" && currentIndex < tabOrder.length - 1) {
-      setActiveTab(tabOrder[currentIndex + 1]);
-    }
+      if (dir === "Left" && currentIndex < tabOrder.length - 1) {
+        setActiveTab(tabOrder[currentIndex + 1]);
+      }
 
-    if (dir === "Right" && currentIndex > 0) {
-      setActiveTab(tabOrder[currentIndex - 1]);
-    }
-  },
+      if (dir === "Right" && currentIndex > 0) {
+        setActiveTab(tabOrder[currentIndex - 1]);
+      }
+    },
 
-  preventScrollOnSwipe: false,
-  trackTouch: true,
-});
+    preventScrollOnSwipe: false,
+    trackTouch: true,
+  });
 
   const summary = useMemo(() => buildSummary(allNames, expenses), [allNames, expenses]);
 
@@ -298,7 +302,7 @@ const handlers = useSwipeable({
               />
             )}
 
-            {activeTab === 'payment' && <Payment summary={summary} roommates={roommates}/>}
+            {activeTab === 'payment' && <Payment summary={summary} roommates={roommates} />}
           </section>
         </main>
       </div>
@@ -310,6 +314,7 @@ const handlers = useSwipeable({
           confirm?.onYes?.();
           setConfirm(null);
         }}
+         showOnlyOkay={confirm?.singleButton}
       />
     </div>
   );

@@ -63,8 +63,9 @@ export default function RoommatePanel({
                 name: e.target.value,
               }))
             }
+            onKeyDown={(e) => e.key === 'Enter' && addRoommate()}
             className="input-premium w-full"
-            placeholder="Name *"
+            placeholder="Name*"
           />
 
           <input
@@ -75,6 +76,7 @@ export default function RoommatePanel({
                 mobile: e.target.value,
               }))
             }
+            onKeyDown={(e) => e.key === 'Enter' && addRoommate()}
             className="input-premium w-full"
             placeholder="Mobile Number (Optional)"
           />
@@ -145,10 +147,11 @@ export default function RoommatePanel({
                         if (!e.currentTarget.contains(e.relatedTarget)) {
                           cancelEdit();
                         }
-                      }} className="space-y-2">
+                      }} className="space-y-2 pr-4">
                       <input
                         autoFocus
                         value={editingData.name}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                         onChange={(e) =>
                           setEditingData((prev) => ({
                             ...prev,
@@ -156,37 +159,39 @@ export default function RoommatePanel({
                           }))
                         }
                         placeholder="Name"
-                        className="w-full bg-white/40 rounded px-2 py-1 text-sm outline-none"
+                        className="w-full bg-slate-200 rounded px-2 py-1 text-sm outline-none"
                       />
 
                       <input
                         value={editingData.mobile}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                         onChange={(e) =>
                           setEditingData((prev) => ({
                             ...prev,
                             mobile: e.target.value,
                           }))
                         }
-                        placeholder="Mobile Number"
-                        className="w-full bg-white/40 rounded px-2 py-1 text-sm outline-none"
+                        placeholder="Mobile Number (Optional)"
+                        className="w-full bg-slate-200 placeholder:text-slate-500 rounded px-2 py-1 text-sm outline-none"
                       />
 
                       <input
                         value={editingData.upiId}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                         onChange={(e) =>
                           setEditingData((prev) => ({
                             ...prev,
                             upiId: e.target.value,
                           }))
                         }
-                        placeholder="UPI ID"
-                        className="w-full bg-white/40 rounded px-2 py-1 text-sm outline-none"
+                        placeholder="UPI Id (Optional)"
+                        className="w-full bg-slate-200 placeholder:text-slate-500 rounded px-2 py-1 text-sm outline-none"
                       />
 
                       <div className="flex gap-2">
                         <button
                           onClick={saveEdit}
-                          className="text-xs font-semibold"
+                          className="text-md font-semibold"
                           style={{ color: textColor }}
                         >
                           Save
@@ -194,7 +199,7 @@ export default function RoommatePanel({
 
                         <button
                           onClick={cancelEdit}
-                          className="text-xs"
+                          className="text-md"
                           style={{ color: textColor }}
                         >
                           Cancel
