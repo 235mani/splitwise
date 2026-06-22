@@ -92,7 +92,7 @@ export default function SummaryPanel({ summary }) {
 
           return (
             <div
-              key={item.name}
+              key={item.id}
               className="premium-card p-5 border-l-4"
               style={{
                 borderLeftColor: getsBack

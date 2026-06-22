@@ -1,5 +1,5 @@
 export function getBadgeColor(idx, name) {
-  const palette = ['#2563eb', '#e67e22', '#16a085', '#8e44ad', '#e74c3c', '#f1c40f', '#2ecc71', '#d35400', '#2980b9', '#c0392b', '#7f8c8d', '#34495e'];
+  const palette = ['#e67e22', '#16a085', '#8e44ad', '#e74c3c', '#2563eb', '#f1c40f', '#2ecc71', '#d35400', '#2980b9', '#c0392b', '#7f8c8d', '#34495e'];
   let color = palette[idx % palette.length];
   if (idx >= palette.length) {
     let hash = 0;

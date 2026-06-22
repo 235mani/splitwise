@@ -1,60 +1,72 @@
-export function getAllNames(roommates, expenses) {
-  const allNamesSet = new Set(
-    roommates.map((r) =>
-      typeof r === 'string'
-        ? r
-        : r.name
-    )
+export function getRoommateMap(roommates) {
+  return Object.fromEntries(
+    roommates.map((roommate) => [
+      roommate.id,
+      roommate,
+    ])
+  );
+}
+
+export function getAllIds(roommates, expenses) {
+  const ids = new Set(
+    roommates.map((roommate) => roommate.id)
   );
 
   expenses.forEach((expense) => {
-    allNamesSet.add(expense.paidBy);
+    ids.add(expense.paidBy);
 
-    expense.splitAmong.forEach((name) =>
-      allNamesSet.add(name)
+    expense.splitAmong.forEach((id) =>
+      ids.add(id)
     );
   });
 
-  return Array.from(allNamesSet);
+  return Array.from(ids);
 }
 
 export function buildBalanceMatrix(
-  names,
+  roommateIds,
   expenses
 ) {
   const matrix = Object.fromEntries(
-    names.map((name) => [
-      name,
+    roommateIds.map((id) => [
+      id,
       Object.fromEntries(
-        names.map((other) => [other, 0])
+        roommateIds.map((otherId) => [
+          otherId,
+          0,
+        ])
       ),
     ])
   );
 
   expenses.forEach((expense) => {
+    if (!expense.splitAmong.length) return;
+
     const share =
       expense.amount /
       expense.splitAmong.length;
 
-    expense.splitAmong.forEach((name) => {
-      if (name !== expense.paidBy) {
-        matrix[name][expense.paidBy] +=
+    expense.splitAmong.forEach((roommateId) => {
+      if (
+        roommateId !== expense.paidBy
+      ) {
+        matrix[roommateId][expense.paidBy] +=
           share;
       }
     });
   });
 
-  names.forEach((first) => {
-    names.forEach((second) => {
-      if (first === second) return;
+  roommateIds.forEach((firstId) => {
+    roommateIds.forEach((secondId) => {
+      if (firstId === secondId) return;
 
       const min = Math.min(
-        matrix[first][second],
-        matrix[second][first]
+        matrix[firstId][secondId],
+        matrix[secondId][firstId]
       );
 
-      matrix[first][second] -= min;
-      matrix[second][first] -= min;
+      matrix[firstId][secondId] -= min;
+      matrix[secondId][firstId] -= min;
     });
   });
 
@@ -62,34 +74,70 @@ export function buildBalanceMatrix(
 }
 
 export function buildSummary(
-  names,
+  roommates,
   expenses
 ) {
   const paid = Object.fromEntries(
-    names.map((name) => [name, 0])
+    roommates.map((roommate) => [
+      roommate.id,
+      0,
+    ])
   );
 
   const share = Object.fromEntries(
-    names.map((name) => [name, 0])
+    roommates.map((roommate) => [
+      roommate.id,
+      0,
+    ])
   );
 
   expenses.forEach((expense) => {
+    if (!expense.splitAmong.length) return;
+
     const splitShare =
       expense.amount /
       expense.splitAmong.length;
 
-    paid[expense.paidBy] +=
-      expense.amount;
+    if (
+      paid[expense.paidBy] !== undefined
+    ) {
+      paid[expense.paidBy] +=
+        expense.amount;
+    }
 
-    expense.splitAmong.forEach((name) => {
-      share[name] += splitShare;
+    expense.splitAmong.forEach((id) => {
+      if (share[id] !== undefined) {
+        share[id] += splitShare;
+      }
     });
   });
 
-  return names.map((name) => ({
-    name,
-    paid: paid[name],
-    share: share[name],
-    net: paid[name] - share[name],
+  return roommates.map((roommate) => ({
+    id: roommate.id,
+    name: roommate.name,
+    mobile: roommate.mobile,
+    upiId: roommate.upiId,
+    paid: paid[roommate.id] || 0,
+    share: share[roommate.id] || 0,
+    net:
+      (paid[roommate.id] || 0) -
+      (share[roommate.id] || 0),
   }));
+}
+
+export function getRoommateName(
+  roommateMap,
+  id
+) {
+  return (
+    roommateMap[id]?.name ??
+    'Unknown User'
+  );
+}
+
+export function getRoommateById(
+  roommateMap,
+  id
+) {
+  return roommateMap[id] ?? null;
 }

@@ -1,5 +1,9 @@
 import { darkenHex, getBadgeColor, hexToRgb } from '../utils/colors';
-import { buildBalanceMatrix, getAllNames } from '../utils/expenseLogic';
+import {
+  buildBalanceMatrix,
+  getAllIds,
+  getRoommateMap,
+} from '../utils/expenseLogic';
 
 function formatExpenseLabel(expense) {
   if (!expense) return '';
@@ -8,37 +12,64 @@ function formatExpenseLabel(expense) {
 }
 
 export default function DetailedPanel({ roommates, expenses, showTransactions, setShowTransactions }) {
-  const allNames = getAllNames(roommates, expenses);
-  const matrix = buildBalanceMatrix(allNames, expenses);
+  const allIds = getAllIds(
+    roommates,
+    expenses
+  );
 
-  const rows = allNames.map((name) => {
+  const matrix =
+    buildBalanceMatrix(
+      allIds,
+      expenses
+    );
+  const roommateMap =
+    getRoommateMap(roommates);
+
+  const rows = allIds.map((roommateId) => {
     const paymentDue = [];
     const paymentReceivable = [];
 
-    allNames.forEach((other) => {
-      if (name === other) return;
+
+    allIds.forEach((otherId) => {
+      if (roommateId === otherId) return;
 
       if (showTransactions) {
         expenses.forEach((expense) => {
-          if (expense.paidBy === other && expense.splitAmong.includes(name)) {
-            paymentDue.push({ other, share: expense.amount / expense.splitAmong.length, expense });
+          if (
+            expense.paidBy === otherId &&
+            expense.splitAmong.includes(
+              roommateId
+            )
+          ) {
+            paymentDue.push({ otherId, share: expense.amount / expense.splitAmong.length, expense });
           }
-          if (expense.paidBy === name && expense.splitAmong.includes(other)) {
-            paymentReceivable.push({ other, share: expense.amount / expense.splitAmong.length, expense });
+          if (expense.paidBy === roommateId && expense.splitAmong.includes(otherId)) {
+            paymentReceivable.push({ otherId, share: expense.amount / expense.splitAmong.length, expense });
           }
         });
         return;
       }
 
-      const owes = matrix[name]?.[other] ?? 0;
-      const gets = matrix[other]?.[name] ?? 0;
+      const owes = matrix[roommateId]?.[otherId] ?? 0;
+      const gets = matrix[otherId]?.[roommateId] ?? 0;
 
-      if (owes > 0.009) paymentDue.push({ other, share: owes });
-      if (gets > 0.009) paymentReceivable.push({ other, share: gets });
+      if (owes > 0.009) {
+        paymentDue.push({
+          otherId,
+          share: owes,
+        });
+      }
+
+      if (gets > 0.009) {
+        paymentReceivable.push({
+          otherId,
+          share: gets,
+        });
+      }
     });
 
     const totalSpent = expenses
-      .filter((expense) => expense.paidBy === name)
+      .filter((expense) => expense.paidBy === roommateId)
       .reduce((sum, expense) => sum + expense.amount, 0);
     const totalOwes = paymentDue.reduce((sum, item) => sum + item.share, 0);
     const totalGets = paymentReceivable.reduce((sum, item) => sum + item.share, 0);
@@ -47,13 +78,24 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
     if (totalGets > totalOwes + 0.009) summaryText = `Gets ₹${(totalGets - totalOwes).toFixed(2)}`;
     else if (totalOwes > totalGets + 0.009) summaryText = `To pay ₹${(totalOwes - totalGets).toFixed(2)}`;
 
-    return { name, totalSpent, summaryText, paymentDue, paymentReceivable };
+    return {
+      id: roommateId,
+      name:
+        roommateMap[
+          roommateId
+        ]?.name ??
+        'Unknown User',
+      totalSpent,
+      summaryText,
+      paymentDue,
+      paymentReceivable,
+    };
   });
 
   return (
     <section className="rounded-3xl">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold text-slate-800">Detailed Summary</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Detailed Summary</h2>
         <button
           type="button"
           onClick={() => setShowTransactions((prev) => !prev)}
@@ -66,16 +108,16 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
 
       {
         rows.length > 0 ? (
-          <ul className="mt-5 space-y-4">
+          <ul className="mt-3 space-y-4">
             {rows.map((row) => {
-              const userIdx = roommates.findIndex((person) => person.name === row.name);
+              const userIdx = roommates.findIndex((person) => person.id === row.id);
               const userColor = getBadgeColor(userIdx >= 0 ? userIdx : 0, row.name);
               const userDark = darkenHex(userColor, 0.2);
               const shadow = hexToRgb(userColor);
 
               return (
                 <li
-                  key={row.name}
+                  key={row.id}
                   className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                   style={{ borderLeft: `3px solid ${userDark}`, boxShadow: `0 12px 30px rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, 0.12)` }}
                 >
@@ -90,9 +132,15 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
                   <ul className="mt-3 space-y-2">
                     {row.paymentDue.length ? (
                       row.paymentDue.map((item) => (
-                        <li key={`${row.name}-due-${item.other}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-rose-100 bg-rose-50/70 p-3">
+                        <li key={`${row.id}-due-${item.otherId}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-rose-100 bg-rose-50/70 p-3">
                           <div className="flex items-start justify-between gap-3">
-                            <span className="text-sm font-semibold text-rose-700">To pay {item.other}</span>
+                            <span className="text-sm font-semibold text-rose-700">To pay {
+                              roommateMap[
+                                item.otherId
+                              ]?.name ??
+                              'Unknown User'
+                            }
+                            </span>
                             <span className="text-sm font-semibold text-rose-700">₹{item.share.toFixed(2)}</span>
                           </div>
                           {item.expense && <p className="mt-1 text-xs text-slate-500">{formatExpenseLabel(item.expense)}</p>}
@@ -104,9 +152,14 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
 
                     {row.paymentReceivable.length ? (
                       row.paymentReceivable.map((item) => (
-                        <li key={`${row.name}-get-${item.other}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
+                        <li key={`${row.id}-get-${item.otherId}-${item.expense?.desc || 'summary'}`} className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
                           <div className="flex items-start justify-between gap-3">
-                            <span className="text-sm font-semibold text-emerald-700">To receive from {item.other}</span>
+                            <span className="text-sm font-semibold text-emerald-700">To receive from {
+                              roommateMap[
+                                item.otherId
+                              ]?.name ??
+                              'Unknown User'
+                            }</span>
                             <span className="text-sm font-semibold text-emerald-700">₹{item.share.toFixed(2)}</span>
                           </div>
                           {item.expense && <p className="mt-1 text-xs text-slate-500">{formatExpenseLabel(item.expense)}</p>}

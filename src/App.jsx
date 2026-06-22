@@ -6,16 +6,26 @@ import ExpensePanel from './components/ExpensePanel';
 import SummaryPanel from './components/SummaryPanel';
 import DetailedPanel from './components/DetailedPanel';
 import ConfirmDialog from './components/ConfirmDialog';
-import { buildSummary, getAllNames } from './utils/expenseLogic';
+import { buildSummary } from './utils/expenseLogic';
 import { useSwipeable } from "react-swipeable";
 import Payment from './components/Payment';
 import Footer from './components/Footer';
 
-const defaultRoommates = [
-  { name: 'Alice', mobile: '', upiId: '' },
-  { name: 'Bob', mobile: '', upiId: '' },
-  { name: 'Charlie', mobile: '', upiId: '' },
-];
+const defaultRoommates = [];
+
+const createRoommate = (
+  name,
+  mobile = '',
+  upiId = ''
+) => ({
+  id: Date.now().toString() +
+      Math.random()
+        .toString(36)
+        .substring(2, 9),
+  name,
+  mobile,
+  upiId,
+});
 
 function readStoredArray(key, fallback) {
   try {
@@ -40,9 +50,7 @@ function App() {
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState('');
-  const [paidBy, setPaidBy] = useState(
-    () => readStoredArray('splitwise_roommates', defaultRoommates)[0]?.name || ''
-  );
+  const [paidBy, setPaidBy] = useState('');
   const [activeTab, setActiveTab] = useState('names');
   const tabOrder = ['names', 'split', 'detailed', 'payment'];
   const [showTransactions, setShowTransactions] = useState(false);
@@ -50,18 +58,7 @@ function App() {
   const [editIndex, setEditIndex] = useState(null);
 
   useEffect(() => {
-    if (
-      roommates.length &&
-      typeof roommates[0] === 'string'
-    ) {
-      setRoommates(
-        roommates.map((name) => ({
-          name,
-          mobile: '',
-          upiId: '',
-        }))
-      );
-    }
+    localStorage.clear(); // removes all localStorage items
   }, []);
 
   useEffect(() => {
@@ -75,15 +72,15 @@ function App() {
   useEffect(() => {
     if (
       roommates.length &&
-      !roommates.some((r) => r.name === paidBy)
+      !roommates.some((r) => r.id === paidBy)
     ) {
-      setPaidBy(roommates[0]?.name);
+      setPaidBy(roommates[0]?.id);
     }
   }, [roommates, paidBy]);
 
   const splitSelected = useMemo(() => {
     return roommates.map((roommate) => ({
-      name: roommate.name,
+      id: roommate.id,
       checked: true,
     }));
   }, [roommates]);
@@ -93,13 +90,17 @@ function App() {
   useEffect(() => {
     setSplitAmong(
       roommates.map((roommate) => ({
+        id: roommate.id,
         name: roommate.name,
         checked: true,
       }))
     );
   }, [roommates]);
 
-  const allNames = useMemo(() => getAllNames(roommates, expenses), [roommates, expenses]);
+  const summary = useMemo(
+    () => buildSummary(roommates, expenses),
+    [roommates, expenses]
+  );
 
   const addRoommate = () => {
     if (!roommateInput.name.trim()) {
@@ -112,18 +113,49 @@ function App() {
       setConfirm({ title: 'Roommate already exists', message: 'That name is already on the list.', singleButton: true });
       return;
     }
-    setRoommates([...roommates, { name, mobile, upiId }]);
+    setRoommates([
+      ...roommates,
+      createRoommate(
+        name.trim(),
+        mobile,
+        upiId
+      ),
+    ]);
     setRoommateInput({ name: '', mobile: '', upiId: '' });
   };
 
   const removeRoommate = (idx) => {
-    const name = roommates[idx].name;
+    const roommate = roommates[idx];
+
+    const hasExpenses =
+      expenses.some(
+        (expense) =>
+          expense.paidBy === roommate.id ||
+          expense.splitAmong.includes(
+            roommate.id
+          )
+      );
+
+    if (hasExpenses) {
+      setConfirm({
+        title: `Cannot delete roommate '${roommate.name}'`,
+        message:
+           `'${roommate.name}' has associated expenses. Delete those expenses before removing the roommate.`,
+        singleButton: true,
+      });
+
+      return;
+    }
+
     setConfirm({
       title: 'Remove roommate?',
-      message: `This will also remove any expenses involving ${name}.`,
+      message: `Remove ${roommate.name}?`,
       onYes: () => {
-        setExpenses(expenses.filter((e) => e.paidBy !== name && !e.splitAmong.includes(name)));
-        setRoommates(roommates.filter((_, i) => i !== idx));
+        setRoommates(
+          roommates.filter(
+            (_, i) => i !== idx
+          )
+        );
         setConfirm(null);
       },
     });
@@ -132,7 +164,7 @@ function App() {
   const clearAllNames = () => {
     setConfirm({
       title: 'Delete all roommates?',
-      message: 'This will also remove all expenses associated with these roommates.',
+      message: 'This will remove all roommates and all expenses.',
       onYes: () => {
         setExpenses([]);
         setRoommates([]);
@@ -151,7 +183,7 @@ function App() {
       return;
     }
     const parsedAmount = parts.reduce((sum, p) => sum + parseFloat(p), 0);
-    const selected = splitAmong.filter((item) => item.checked).map((item) => item.name);
+    const selected = splitAmong.filter((item) => item.checked).map((item) => item.id);
     if (!selected.length) {
       setConfirm({ title: 'Select someone to split with', message: 'Choose at least one roommate.' });
       return;
@@ -165,8 +197,8 @@ function App() {
     } else {
       setExpenses([...expenses, newExpense]);
     }
-    setDesc(''); setAmount(''); setExpenseDate(''); setPaidBy(roommates[0]?.name || '');
-    setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: true })));
+    setDesc(''); setAmount(''); setExpenseDate(''); setPaidBy(roommates[0]?.id || '');
+    setSplitAmong(roommates.map((roommate) => ({ id: roommate.id, name: roommate.name, checked: true })));
   };
 
   const editExpense = (idx) => {
@@ -176,7 +208,7 @@ function App() {
     setAmount(String(item.amount));
     setExpenseDate(item.date || '');
     setPaidBy(item.paidBy);
-    setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: item.splitAmong.includes(roommate.name) })));
+    setSplitAmong(roommates.map((roommate) => ({ id: roommate.id, name: roommate.name, checked: item.splitAmong.includes(roommate.id) })));
     setActiveTab('split');
   };
 
@@ -196,8 +228,13 @@ function App() {
     updatedRoommate
   ) => {
     setRoommates((prev) =>
-      prev.map((roommate, i) =>
-        i === idx ? updatedRoommate : roommate
+      prev.map((roommate) =>
+        roommate.id === idx
+          ? {
+            ...roommate,
+            ...updatedRoommate,
+          }
+          : roommate
       )
     );
   };
@@ -239,8 +276,6 @@ function App() {
     trackTouch: true,
   });
 
-  const summary = useMemo(() => buildSummary(allNames, expenses), [allNames, expenses]);
-
   return (
     <div className="min-h-screen text-slate-800" {...handlers}>
       <Header />
@@ -281,8 +316,8 @@ function App() {
                   setDesc('');
                   setAmount('');
                   setExpenseDate('');
-                  setPaidBy(roommates[0]?.name || '');
-                  setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: true })));
+                  setPaidBy(roommates[0]?.id || '');
+                  setSplitAmong(roommates.map((roommate) => ({ id: roommate.id, name: roommate.name, checked: true })));
                 }}
                 expenses={expenses}
                 editExpense={editExpense}
@@ -302,7 +337,7 @@ function App() {
               />
             )}
 
-            {activeTab === 'payment' && <Payment summary={summary} roommates={roommates} />}
+            {activeTab === 'payment' && <Payment summary={summary} roommates={roommates} setActiveTab={setActiveTab} />}
           </section>
         </main>
       </div>
@@ -314,7 +349,7 @@ function App() {
           confirm?.onYes?.();
           setConfirm(null);
         }}
-         showOnlyOkay={confirm?.singleButton}
+        showOnlyOkay={confirm?.singleButton}
       />
     </div>
   );

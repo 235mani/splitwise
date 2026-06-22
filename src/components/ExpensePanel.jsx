@@ -1,6 +1,36 @@
 import { Edit2Icon, TrashIcon } from 'lucide-react';
 import { getBadgeColor, getTextColor } from '../utils/colors';
 
+
+function UserChip({ roommate, roommates }) {
+  const idx = roommates.findIndex((r) => r.id === roommate.id);
+
+  const bg = getBadgeColor(
+    idx >= 0 ? idx : 0,
+    roommate.name
+  );
+
+  const textColor = getTextColor(bg);
+
+  return (
+    <div className="flex items-center gap-2 rounded-full bg-slate-50 border border-slate-100 px-2 py-1">
+      <div
+        className="h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0"
+        style={{
+          background: bg,
+          color: textColor,
+        }}
+      >
+        {roommate.name.charAt(0).toUpperCase()}
+      </div>
+
+      <span className="text-xs font-medium text-slate-700">
+        {roommate.name}
+      </span>
+    </div>
+  );
+}
+
 export default function ExpensePanel({
   desc, setDesc,
   amount, setAmount,
@@ -16,10 +46,16 @@ export default function ExpensePanel({
   deleteExpense,
   deleteAllExpenses,
 }) {
+  const roommateMap = Object.fromEntries(
+    roommates.map((roommate) => [
+      roommate.id,
+      roommate,
+    ])
+  );
   return (
     <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
       {/* Add Expense Form */}
-      <section className="premium-card p-4 space-y-6">
+      <section className="premium-card p-6 space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-slate-900">Add expense</h2>
           <p className="text-sm text-slate-500">Split shared costs with roommates</p>
@@ -31,8 +67,8 @@ export default function ExpensePanel({
           <input
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            className="input-premium w-full"
-            placeholder="E.g., Dinner, Groceries, Wifi..."
+            className="input-premium"
+            placeholder="EX: Dinner, Groceries, Wi-Fi, Tickets..."
           />
         </div>
 
@@ -43,10 +79,10 @@ export default function ExpensePanel({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addExpense()}
-            className="input-premium w-full text-lg font-semibold"
+            className="input-premium text-lg font-semibold"
             placeholder="0.00"
           />
-          <p className="text-xs text-slate-500 mt-1">Tip: Use + to add multiple amounts (e.g., 100+50+75)</p>
+          <p className="text-xs text-slate-400 mt-1">Tip: Use + to add multiple amounts (e.g., 100+50+75)</p>
         </div>
 
         {/* Date & Payer */}
@@ -57,7 +93,7 @@ export default function ExpensePanel({
               type="date"
               value={expenseDate}
               onChange={(e) => setExpenseDate(e.target.value)}
-              className="input-premium w-full"
+              className="input-premium"
             />
           </div>
           <div>
@@ -65,12 +101,12 @@ export default function ExpensePanel({
             <select
               value={paidBy}
               onChange={(e) => setPaidBy(e.target.value)}
-              className="input-premium w-full"
+              className="input-premium"
             >
               {roommates.map((roommate) => (
                 <option
-                  key={roommate.name}
-                  value={roommate.name}
+                  key={roommate.id}
+                  value={roommate.id}
                 >
                   {roommate.name}
                 </option>
@@ -85,14 +121,14 @@ export default function ExpensePanel({
             <span className="text-sm font-semibold text-slate-700">Split among:</span>
             <button
               type="button"
-              onClick={() => setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: true })))}
+              onClick={() => setSplitAmong(roommates.map((roommate) => ({ id: roommate.id, name: roommate.name, checked: true })))}
               className="btn-secondary px-2.5 py-1 text-xs"
             >
               Select All
             </button>
             <button
               type="button"
-              onClick={() => setSplitAmong(roommates.map((roommate) => ({ name: roommate.name, checked: false })))}
+              onClick={() => setSplitAmong(roommates.map((roommate) => ({ id: roommate.id, name: roommate.name, checked: false })))}
               className="btn-secondary px-2.5 py-1 text-xs"
             >
               Clear
@@ -101,7 +137,7 @@ export default function ExpensePanel({
           <div className="flex flex-wrap gap-2">
             {splitAmong.map((item) => (
               <label
-                key={item.name}
+                key={item.id}
                 className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm text-slate-700 shadow-soft-xs ring-1 ring-slate-100 cursor-pointer transition hover:shadow-soft-md"
               >
                 <input
@@ -110,7 +146,7 @@ export default function ExpensePanel({
                   onChange={() =>
                     setSplitAmong(
                       splitAmong.map((entry) =>
-                        entry.name === item.name
+                        entry.id === item.id
                           ? { ...entry, checked: !entry.checked }
                           : entry
                       )
@@ -164,10 +200,16 @@ export default function ExpensePanel({
         <div className="space-y-3 flex-1 overflow-y-auto">
           {expenses.length ? (
             expenses.map((e, i) => {
-              const payerIdx = roommates.findIndex((r) => r.name === e.paidBy);
-              const bg = getBadgeColor(payerIdx >= 0 ? payerIdx : 0, e.paidBy);
-              const text = getTextColor(bg);
+              const payer = roommateMap[e.paidBy];
+              const payerIdx = roommates.findIndex((r) => r.id === e.paidBy);
+              const payerBg = getBadgeColor(
+                payerIdx >= 0 ? payerIdx : 0,
+                payer?.name ?? 'Unknown'
+              );
+              const payerText = getTextColor(payerBg);
+
               return (
+
                 <div
                   key={`${e.desc}-${i}`}
                   className="premium-card p-4 hover:shadow-soft-md transition-shadow"
@@ -179,6 +221,8 @@ export default function ExpensePanel({
                         {e.date ? new Date(e.date).toLocaleDateString() : 'No date'}
                       </p>
                     </div>
+
+
                     <div className="flex gap-1">
                       <button
                         onClick={() => editExpense(i)}
@@ -186,45 +230,52 @@ export default function ExpensePanel({
                       >
                         <Edit2Icon className="h-5 w-5" />
                       </button>
+
                       <button
                         onClick={() => deleteExpense(i)}
-                        className="text-red-600"
+                        className="rounded-lg p-1.5 hover:bg-red-50 transition text-red-600"
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
 
-                  <p className="font-bold text-indigo-600 text-base mb-2">₹{e.amount.toFixed(2)}</p>
+                  <p className="font-bold text-indigo-600 text-base mb-3">
+                    ₹{e.amount.toFixed(2)}
+                  </p>
 
-                  <div className="text-xs space-y-2">
-                    <p className="text-slate-600">
-                      Paid by{' '}
-                      <span
-                        className="font-semibold rounded-lg px-2 py-1 inline-block"
-                        style={{ background: bg, color: text }}
-                      >
-                        {e.paidBy}
-                      </span>
-                    </p>
-                    <div className="flex items-center flex-wrap gap-1">
-                      <p className="text-slate-600"> Split among: </p>
-                      {e.splitAmong.map((name) => {
-                        const idx = roommates.findIndex((r) => r.name === name);
-                        const c = getBadgeColor(idx >= 0 ? idx : 0, name);
+                  <div className="space-y-3">
+                    {/* Paid By */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-slate-600">Paid by:</span>
 
-                        return (
-                          <span
-                            key={name}
-                            className="rounded-lg px-2 py-1 font-semibold"
-                            style={{ background: c, color: getTextColor(c) }}
-                          >
-                            {name}
-                          </span>
-                        );
+                      {payer && (
+                        <UserChip
+                          roommate={payer}
+                          roommates={roommates}
+                        />
+                      )}
+                    </div>
+
+                    {/* Split Among */}
+                    <div className="flex items-center flex-wrap gap-2">
+                      <span className="text-xs text-slate-600">Split among:</span>
+
+                      {e.splitAmong.map((roommateId) => {
+                        const roommate = roommateMap[roommateId];
+
+                        return roommate ? (
+                          <UserChip
+                            key={roommateId}
+                            roommate={roommate}
+                            roommates={roommates}
+                          />
+                        ) : null;
                       })}
                     </div>
                   </div>
+
+
                 </div>
               );
             })

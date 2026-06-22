@@ -54,19 +54,15 @@ body { margin: 0; }
 
 /* Input Focus State */
 .input-premium {
-  @apply rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition;
-}
-
-.input-premium:focus {
-  @apply border-indigo-300 ring-2 ring-indigo-100 shadow-md;
+  @apply rounded-lg border border-slate-300 bg-white py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 w-full;
 }
 
 .btn-premium {
-  @apply rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200;
+  @apply rounded-lg bg-indigo-600 px-4 py-2 text-white transition-all w-full text-center;
 }
 
 .btn-premium:hover {
-  @apply -translate-y-0.5 shadow-xl from-indigo-700 to-indigo-600;
+  @apply bg-indigo-700;
 }
 
 /* Custom Checkbox */
