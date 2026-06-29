@@ -93,14 +93,14 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
   });
 
   return (
-    <section className="rounded-3xl">
+    <section className="surface-card p-5 sm:p-6 animate-fade-in">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-slate-900">Detailed Summary</h2>
+        <div><p className="section-kicker">Group balances</p><h2 className="text-2xl font-semibold tracking-[-0.03em] text-ink">Full breakdown</h2></div>
         <button
           type="button"
           onClick={() => setShowTransactions((prev) => !prev)}
           aria-label="Toggle detailed transaction view"
-          className={`relative inline-flex h-7 w-14 items-center rounded-full transition ${showTransactions ? 'bg-sky-600' : 'bg-slate-200'}`}
+          className={`relative inline-flex h-7 w-14 items-center rounded-full transition ${showTransactions ? 'bg-violet-600' : 'bg-slate-200'}`}
         >
           <span className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition ${showTransactions ? 'translate-x-7' : ''}`} />
         </button>
@@ -118,12 +118,12 @@ export default function DetailedPanel({ roommates, expenses, showTransactions, s
               return (
                 <li
                   key={row.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4"
                   style={{ borderLeft: `3px solid ${userDark}`, boxShadow: `0 12px 30px rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, 0.12)` }}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-base font-semibold text-sky-700">{row.name}</p>
+                      <p className="text-base font-semibold text-violet-700">{row.name}</p>
                       <p className="text-sm text-slate-500">{row.summaryText}</p>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">Total spent: ₹{row.totalSpent.toFixed(2)}</span>

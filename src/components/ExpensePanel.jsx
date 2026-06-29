@@ -53,12 +53,12 @@ export default function ExpensePanel({
     ])
   );
   return (
-    <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+    <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] animate-fade-in">
       {/* Add Expense Form */}
-      <section className="premium-card p-6 space-y-4">
+      <section className="surface-card p-5 sm:p-6 space-y-5">
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900">Add expense</h2>
-          <p className="text-sm text-slate-500">Split shared costs with roommates</p>
+          <p className="section-kicker">Expenses</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-ink">Add a shared expense</h2>
         </div>
 
         {/* Description */}
@@ -116,7 +116,7 @@ export default function ExpensePanel({
         </div>
 
         {/* Split Among */}
-        <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-slate-50 p-4 border border-indigo-100/50">
+        <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <span className="text-sm font-semibold text-slate-700">Split among:</span>
             <button
@@ -164,7 +164,7 @@ export default function ExpensePanel({
         <div className="flex flex-wrap gap-3 pt-4">
           <button
             onClick={addExpense}
-            className="btn-premium flex-1"
+            className="btn-primary flex-1"
           >
             {editIndex !== null ? 'Update' : 'Add'}
           </button>
@@ -181,9 +181,9 @@ export default function ExpensePanel({
 
       {/* Expense Log */}
       <aside className="flex flex-col">
-        <div className="flex items-center justify-between m-3">
+        <div className="mb-3 flex items-center justify-between px-1 py-2">
           <div className="flex gap-3">
-            <h2 className="text-2xl font-bold text-slate-900">History</h2>
+            <h2 className="text-xl font-semibold tracking-[-0.03em] text-ink">Expense history</h2>
             <button
               onClick={deleteAllExpenses}
               className="rounded-lg p-1.5 hover:bg-red-50 transition text-red-600"
@@ -192,7 +192,7 @@ export default function ExpensePanel({
               <TrashIcon className="h-5 w-5" />
             </button>
           </div>
-          <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+          <span className="rounded-full bg-violet-100 px-3 py-1 text-sm font-semibold text-violet-700">
             {expenses.length}
           </span>
         </div>

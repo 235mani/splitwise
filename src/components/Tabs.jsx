@@ -1,45 +1,30 @@
+import { NotebookPen, ScrollText, UsersRound, WalletCards } from 'lucide-react';
+
 export default function Tabs({ activeTab, onChange }) {
   const tabs = [
-    { id: "names", label: "Home", isHidden: false },
-    { id: "split", label: "Expanse", isHidden: false },
-    { id: "brief", label: "Brief", isHidden: true },
-    { id: "detailed", label: "Summary", isHidden: false },
-    { id: "payment", label: "Payment", isHidden: false },
+    { id: 'names', label: 'People', icon: UsersRound },
+    { id: 'split', label: 'Expenses', icon: NotebookPen },
+    { id: "detailed", label: "Summary", icon: ScrollText, isHidden: false },
+    { id: 'payment', label: 'Settle', icon: WalletCards },
   ];
 
   return (
-    <nav className="my-3 sticky top-24 z-10">
-      <div className="grid grid-cols-4 gap-1 rounded-2xl bg-white/70 p-1 shadow-soft-xs ring-1 ring-slate-300 backdrop-blur-sm">
+    <nav className="sticky top-[72px] z-20 my-4 sm:top-[82px] sm:my-5" aria-label="Primary navigation">
+      <div className="nav-shell grid grid-cols-4 gap-1 p-1.5">
         {tabs.map((tab) => {
-          const active = activeTab === tab.id;
+          const active = activeTab === tab.id || (tab.id === 'overview' && activeTab === 'detailed');
+          const Icon = tab.icon;
 
           return (
             <button
               key={tab.id}
+              hidden={tab.isHidden}
               type="button"
               onClick={() => onChange(tab.id)}
-              hidden={tab.isHidden}
-              className={`
-                relative
-                rounded-xl
-                px-2
-                py-2.5
-                text-xs sm:text-sm
-                font-semibold
-                transition-all duration-200
-                whitespace-nowrap
-                ${
-                  active
-                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
-                    : "text-slate-600 hover:bg-gradient-to-r from-indigo-100 to-violet-100 hover:text-indigo-600"
-                }
-              `}
+              className={`nav-item ${active ? 'nav-item-active' : ''}`}
             >
-              {tab.label}
-
-              {active && (
-                <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-white/80" />
-              )}
+              <Icon className="h-4 w-4" />
+              <span>{tab.label}</span>
             </button>
           );
         })}

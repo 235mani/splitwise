@@ -3,7 +3,6 @@ import Header from './components/Header';
 import Tabs from './components/Tabs';
 import RoommatePanel from './components/RoommatePanel';
 import ExpensePanel from './components/ExpensePanel';
-import SummaryPanel from './components/SummaryPanel';
 import DetailedPanel from './components/DetailedPanel';
 import ConfirmDialog from './components/ConfirmDialog';
 import { buildSummary } from './utils/expenseLogic';
@@ -52,14 +51,10 @@ function App() {
   const [expenseDate, setExpenseDate] = useState('');
   const [paidBy, setPaidBy] = useState('');
   const [activeTab, setActiveTab] = useState('names');
-  const tabOrder = ['names', 'split', 'detailed', 'payment'];
+  const tabOrder = [ 'names','split', 'detailed', 'payment'];
   const [showTransactions, setShowTransactions] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
-
-  useEffect(() => {
-    localStorage.clear(); // removes all localStorage items
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('splitwise_roommates', JSON.stringify(roommates));
@@ -279,8 +274,8 @@ function App() {
   return (
     <div className="min-h-screen text-slate-800" {...handlers}>
       <Header />
-      <div className="mx-auto max-w-6xl px-4 pb-6 md:px-6 lg:px-0">
-        <main className="rounded-3xl">
+      <div className="mx-auto max-w-6xl px-4 pb-10 md:px-6 xl:px-0">
+        <main>
           <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
           <section>
@@ -325,8 +320,6 @@ function App() {
                 deleteAllExpenses={deleteAllExpenses}
               />
             )}
-
-            {activeTab === 'brief' && <SummaryPanel summary={summary} />}
 
             {activeTab === 'detailed' && (
               <DetailedPanel

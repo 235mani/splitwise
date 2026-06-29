@@ -4,8 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#4f46e5',
-        accent: '#4f46e5',
+        primary: '#6657e8',
+        accent: '#4fd1a1',
+        ink: '#17201d',
+        coral: { 600: '#e96861' },
+        mint: { 50: '#ecfbf5', 400: '#4fd1a1' },
       },
       boxShadow: {
         'soft-xs': '0 2px 8px rgba(0, 0, 0, 0.04)',

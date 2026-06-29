@@ -68,16 +68,14 @@ export default function RoommatePanel({
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] animate-fade-in">
       {/* Add Roommate Section */}
-      <section className="premium-card p-6">
+      <section className="surface-card h-fit p-5 sm:p-6">
         <div className="space-y-2 mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">
-            Add roommate
+          <p className="section-kicker">Your group</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-ink">
+            Add a person
           </h2>
-          <p className="text-sm text-slate-500">
-            Add a new member to your expense group
-          </p>
         </div>
 
         <div className="space-y-3">
@@ -124,17 +122,17 @@ export default function RoommatePanel({
             onClick={addRoommate}
             className="btn-premium"
           >
-            Add
+            Add to group
           </button>
         </div>
       </section>
 
       {/* Members List */}
-      <aside className="p-2">
+      <aside className="surface-card p-5 sm:p-6">
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Members
+            <h2 className="text-xl font-semibold tracking-[-0.03em] text-ink">
+              People
             </h2>
 
             <button
@@ -145,13 +143,13 @@ export default function RoommatePanel({
             </button>
           </div>
 
-          <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+          <span className="rounded-full bg-violet-100 px-3 py-1 text-sm font-semibold text-violet-700">
             {roommates.length}
           </span>
         </div>
 
-        <div className="mb-6 text-sm text-slate-500">
-          Tap on a member card to edit
+        <div className="mb-5 mt-1 text-sm text-slate-500">
+          Select a person to update payment details.
         </div>
 
         <div className="space-y-3">
@@ -163,7 +161,7 @@ export default function RoommatePanel({
               return (
                 <div
                   key={roommate.id}
-                  className="premium-card p-4"
+                  className="rounded-2xl border border-slate-200/70 bg-slate-50/50 p-4 transition hover:border-violet-200 hover:bg-white"
                   tabIndex={-1}
                   onBlur={(e) => {
                     if (!e.currentTarget.contains(e.relatedTarget)) {
@@ -279,9 +277,7 @@ export default function RoommatePanel({
               );
             })
           ) : (
-            <p className="text-center text-slate-400 py-8 text-sm">
-              No members yet. Add your first roommate!
-            </p>
+            <div className="empty-state py-10">No people yet. Add the first person to your group.</div>
           )}
         </div>
       </aside>
